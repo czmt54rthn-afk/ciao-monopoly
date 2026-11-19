@@ -137,11 +137,11 @@ main { width: min(100% - 28px, 1080px); margin: 26px auto 48px; }
 .fish-readout span:last-child { color: #b9e8d1; }
 .fish-gauge { position: relative; height: 13px; overflow: hidden; border: 2px solid #fff1d5; border-radius: 4px; background: #312749; box-shadow: inset 0 2px 4px #110d1d; }
 .fish-gauge-fill { height: 100%; width: 0; transition: width .08s linear; background: linear-gradient(90deg, #81d9a4 0 60%, #ffdb78 78%, #ff7895 100%); }
-.fish-gauge.tension::before { content: ""; position: absolute; top: 0; bottom: 0; left: 25%; width: 43%; border-left: 1px solid #fff8dc; border-right: 1px solid #fff8dc; background: #86e1a655; z-index: 1; }
+.fish-gauge.tension::before { content: ""; position: absolute; top: 0; bottom: 0; left: 18%; width: 60%; border-left: 1px solid #fff8dc; border-right: 1px solid #fff8dc; background: #86e1a655; z-index: 1; }
 .fish-gauge.tension .fish-gauge-fill { background: linear-gradient(90deg, #69d99a, #ffdf79 74%, #ff698f); }
 .fish-gauge.progress .fish-gauge-fill { background: linear-gradient(90deg, #b6a2ff, #ff8fb6); }
 .cast-gauge { overflow: hidden; border: 2px solid #fff1d5; border-radius: 4px; background: #312749; height: 18px; position: relative; }
-.cast-gauge::before { content: ""; position: absolute; top: 0; bottom: 0; left: 62%; width: 20%; background: #83d9a766; border-inline: 1px solid #9df2bf; }
+.cast-gauge::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 40%; background: #83d9a766; border-inline: 1px solid #9df2bf; }
 .cast-gauge span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #f4bd70, #fff19a); }
 .fish-tip { min-height: 1.3em; color: #fff4d7; text-align: center; font-size: .76rem; font-weight: 750; }
 .game-controls .btn.hold-control { min-width: 138px; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -246,7 +246,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     </div>
   </section>
 
-  <details class="panel schedule">
+  <details class="panel schedule" id="schedule">
     <summary class="panel-head">
       <span class="open-label">展開今日行程</span>
       <span class="close-label">收起今日行程</span>
@@ -295,8 +295,8 @@ dialog textarea { min-height: 170px; width: 100%; }
   ];
   const cards = [
     { emoji: '🔀', name: '交換卡', text: '交換兩個非固定任務的時段。', kind: 'swap' },
-    { emoji: '⏳', name: '延遲卡', text: '將一個非固定任務標記為延後 30 分鐘。', kind: 'delay' },
-    { emoji: '💗', name: '自由卡', text: '留 30 分鐘給自己，自由安排。', kind: 'free' },
+    { emoji: '⏳', name: '延遲卡', text: '選一項非固定任務，將它和後續時段一起延後 30 分鐘。', kind: 'delay' },
+    { emoji: '💗', name: '自由卡', text: '挑一段 30 分鐘的空檔，把自由時間排進今天。', kind: 'free' },
     { emoji: '😈', name: '免責卡', text: '跳過一項非固定任務。完成率照實記錄。', kind: 'skip' },
   ];
   const statuses = [['todo', '待執行'], ['done', '✓ 完成'], ['skip', '未完成']];
@@ -339,6 +339,37 @@ dialog textarea { min-height: 170px; width: 100%; }
     }
     if (selected !== undefined) select.value = selected;
     return select;
+  }
+
+  function parseTimeRange(value) {
+    const match = String(value).match(/(\d{1,2}):(\d{2})\s*[–—-]\s*(\d{1,2}):(\d{2})/);
+    if (!match) return null;
+    const start = Number(match[1]) * 60 + Number(match[2]);
+    let end = Number(match[3]) * 60 + Number(match[4]);
+    if (end < start) end += 1440;
+    return { start, end };
+  }
+
+  function clockAt(minutes) {
+    const normalized = ((minutes % 1440) + 1440) % 1440;
+    return String(Math.floor(normalized / 60)).padStart(2, '0') + ':' + String(normalized % 60).padStart(2, '0');
+  }
+
+  function timeRange(start, end) { return clockAt(start) + '–' + clockAt(end); }
+
+  function sortTasks() {
+    state.tasks = state.tasks.map((task, index) => ({ task, index, range: parseTimeRange(task.time) }))
+      .sort((a, b) => (a.range?.start ?? Infinity) - (b.range?.start ?? Infinity) || a.index - b.index)
+      .map(entry => entry.task);
+  }
+
+  function freeTimeSlots() {
+    const ranges = state.tasks.map(task => parseTimeRange(task.time)).filter(Boolean);
+    const starts = [];
+    for (let start = 930; start + 30 <= 1440; start += 30) starts.push(start);
+    for (let start = 360; start < 930; start += 30) starts.push(start);
+    return starts.flatMap(start => ranges.some(range => start < range.end && start + 30 > range.start)
+      ? [] : [[timeRange(start, start + 30), timeRange(start, start + 30)]]);
   }
 
   function labeled(label, control) {
@@ -416,20 +447,32 @@ dialog textarea { min-height: 170px; width: 100%; }
 
   const games = [
     ['⭕ 套圈圈', '抓準移動指標，瞄準不同的亮燈杯位投出三次，越準得分越高。', ringGame],
-    ['🎣 溪畔釣魚', '按住蓄力拋竿；浮標下沉時揚竿。上鉤後按住收線，魚力變強時放開，安全釣起三尾。', fishingGame],
-    ['🥊 像素格鬥', '看清對手的出拳提示，先防禦，再趁破綻反擊。連打五回合。', fightingGame],
+    ['🎣 溪畔釣魚', '三步驟：按住蓄力，在綠色區放開；浮標沉下時揚竿；按住收線，張力快到黃色就放開。', fishingGame],
+    ['🥊 像素格鬥', '看清對手的出拳提示，先防禦，再趁破綻反擊。共三回合。', fightingGame],
     ['🧠 閃燈記憶', '顏色會一個一個亮起，記住順序再照順序按，三輪會愈來愈長。', memoryGame],
-    ['🚀 閃躲隕石', '看隕石逐漸靠近，在撞上前移到空航道，躲過五波。', dodgeGame],
-    ['👾 外星射手', '自己切換瞄準位置，等外星人移動時開火；一共有五發。', shooterGame],
+    ['🚀 閃躲隕石', '看隕石逐漸靠近，在撞上前移到空航道，共三波。', dodgeGame],
+    ['👾 外星射手', '自己切換瞄準位置，等外星人移動時開火，共三發。', shooterGame],
   ];
   const faces = ['🎲', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
   const pick = length => Math.floor(Math.random() * length);
   let gameTimer;
   let soundEnabled = true;
+  let musicEnabled = true;
   let audioContext;
+  let musicTimer;
+  let musicStep = 0;
+  let musicFace = 0;
+  const musicThemes = [
+    [659, 784, 988, 784, 659, 784, 880, 0, 784, 659, 587, 659, 784, 0, 659, 0],
+    [392, 523, 587, 523, 392, 523, 659, 0, 523, 587, 659, 587, 523, 0, 392, 0],
+    [440, 587, 659, 784, 659, 587, 523, 0, 440, 523, 659, 880, 784, 659, 523, 0],
+    [523, 659, 784, 659, 587, 740, 880, 740, 659, 784, 988, 784, 523, 659, 784, 0],
+    [392, 523, 659, 523, 440, 587, 740, 587, 392, 523, 659, 784, 659, 523, 440, 0],
+    [587, 659, 784, 988, 784, 659, 880, 0, 587, 784, 988, 1175, 988, 784, 659, 0],
+  ];
 
-  function chirp(note = 660, duration = .08, wave = 'square') {
-    if (!soundEnabled) return;
+  function playTone(note, duration, wave, volume) {
+    if (!note) return;
     try {
       audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
       if (audioContext.state === 'suspended') audioContext.resume();
@@ -437,13 +480,39 @@ dialog textarea { min-height: 170px; width: 100%; }
       const gain = audioContext.createGain();
       oscillator.type = wave;
       oscillator.frequency.setValueAtTime(note, audioContext.currentTime);
-      gain.gain.setValueAtTime(.035, audioContext.currentTime);
+      gain.gain.setValueAtTime(volume, audioContext.currentTime);
       gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + duration);
       oscillator.connect(gain);
       gain.connect(audioContext.destination);
       oscillator.start();
       oscillator.stop(audioContext.currentTime + duration);
     } catch {}
+  }
+
+  function chirp(note = 660, duration = .08, wave = 'square') {
+    if (!soundEnabled) return;
+    playTone(note, duration, wave, .035);
+  }
+
+  function stopMusic() {
+    clearTimeout(musicTimer);
+    musicTimer = undefined;
+  }
+
+  function startMusic() {
+    stopMusic();
+    if (!musicEnabled || !musicFace) return;
+    musicStep = 0;
+    function tick() {
+      if (!musicEnabled || !musicFace) return;
+      const melody = musicThemes[musicFace - 1] ?? musicThemes[0];
+      const note = melody[musicStep % melody.length];
+      playTone(note, .13, 'triangle', .012);
+      if (musicStep % 4 === 0) playTone([196, 147, 174, 130][Math.floor(musicStep / 4) % 4], .22, 'triangle', .008);
+      musicStep++;
+      musicTimer = setTimeout(tick, 155);
+    }
+    tick();
   }
 
   function stopGame() {
@@ -745,7 +814,10 @@ dialog textarea { min-height: 170px; width: 100%; }
 
   function openGame() {
     stopGame();
+    stopMusic();
     const round = state.arcade.round;
+    let gameStarted = false;
+    musicFace = round?.face ?? 0;
     const slot = get('game-slot');
     const game = element('section', null, round ? 'game' : 'game arcade-idle');
     const stage = cartridgeDisplay(round?.face ?? 0);
@@ -772,16 +844,28 @@ dialog textarea { min-height: 170px; width: 100%; }
     const controls = element('div', null, 'game-controls');
     prompt.setAttribute('role', 'status');
     const tools = element('div', null, 'game-header-tools');
-    const sound = element('button', soundEnabled ? '♫ 開' : '♫ 關', 'btn utility-control');
+    const sound = element('button', soundEnabled ? '音效 開' : '音效 關', 'btn utility-control');
     sound.type = 'button';
     sound.setAttribute('aria-label', '切換像素音效');
+    sound.setAttribute('aria-pressed', String(soundEnabled));
     sound.onclick = () => {
       soundEnabled = !soundEnabled;
-      sound.textContent = soundEnabled ? '♫ 開' : '♫ 關';
+      sound.textContent = soundEnabled ? '音效 開' : '音效 關';
       sound.setAttribute('aria-pressed', String(soundEnabled));
       if (soundEnabled) chirp(740);
     };
-    tools.append(score, sound);
+    const music = element('button', musicEnabled ? '配樂 開' : '配樂 關', 'btn utility-control');
+    music.type = 'button';
+    music.setAttribute('aria-label', '切換背景配樂');
+    music.setAttribute('aria-pressed', String(musicEnabled));
+    music.onclick = () => {
+      musicEnabled = !musicEnabled;
+      music.textContent = musicEnabled ? '配樂 開' : '配樂 關';
+      music.setAttribute('aria-pressed', String(musicEnabled));
+      if (musicEnabled && gameStarted) startMusic();
+      else if (!musicEnabled) stopMusic();
+    };
+    tools.append(score, sound, music);
     header.append(title, tools);
     screen.append(view, prompt);
     stage.bezel.append(screen);
@@ -833,6 +917,8 @@ dialog textarea { min-height: 170px; width: 100%; }
 
     const finish = (result, presentation = {}) => {
       stopGame();
+      stopMusic();
+      musicFace = 0;
       round.finished = true;
       round.score = result;
       round.resultTitle = presentation.title ?? '本局結束';
@@ -854,6 +940,8 @@ dialog textarea { min-height: 170px; width: 100%; }
     stage.message(name.slice(name.indexOf(' ') + 1), '骰出 ' + round.face + ' 點');
     buttons([['開始遊戲', () => {
       stage.message('');
+      gameStarted = true;
+      if (musicEnabled) startMusic();
       play({ view, buttons, status, updateScore, finish, later, paint: stage.paint, sound: chirp });
     }]]);
     status('準備好了就按開始。');
@@ -969,8 +1057,9 @@ dialog textarea { min-height: 170px; width: 100%; }
     function updateGauge(title, value, amount, type = '') {
       gaugeTitle.textContent = title;
       gaugeValue.textContent = value;
-      gauge.className = 'fish-gauge' + (type ? ' ' + type : '');
+      gauge.className = type === 'cast' ? 'cast-gauge' : 'fish-gauge' + (type ? ' ' + type : '');
       fill.style.width = Math.round(Math.max(0, Math.min(1, amount)) * 100) + '%';
+      if (type !== 'tension') fill.style.background = '';
     }
     function setTip(message) { tip.textContent = message; }
     function nextAttempt(message) {
@@ -990,8 +1079,8 @@ dialog textarea { min-height: 170px; width: 100%; }
     function showCast(message = '按住「蓄力拋竿」，在綠色區放開。') {
       stopGame();
       updateReadout('🍃 溪畔  ·  風平浪靜', '第 ' + (attempts + 1) + ' 投／3');
-      updateGauge('拋竿力道', '—', 0);
-      setTip('綠色是漂亮落點；多一點、少一點也能釣魚。');
+      updateGauge('拋竿力道', '—', 0, 'cast');
+      setTip('第一步：按住蓄力，放在綠色區就好。');
       status(message);
       paint({ stage: 'cast', bobberX: 110, fishX: 122 });
         buttons([
@@ -1004,7 +1093,7 @@ dialog textarea { min-height: 170px; width: 100%; }
               if (!chargeStarted) return;
               const amount = Math.min(1, (performance.now() - chargeStarted) / 1250);
               updateGauge('拋竿力道', Math.round(amount * 100) + '%', amount);
-              if (amount >= .62 && !buzzedAtSweetSpot) { buzz(10); buzzedAtSweetSpot = true; }
+              if (amount >= .5 && !buzzedAtSweetSpot) { buzz(10); buzzedAtSweetSpot = true; }
               later(charge, 35);
             }
             charge();
@@ -1013,7 +1102,7 @@ dialog textarea { min-height: 170px; width: 100%; }
             const amount = Math.max(.08, Math.min(1, duration / 1250));
             chargeStarted = 0;
             castPower = amount;
-            perfectCast = amount >= .62 && amount <= .82;
+            perfectCast = amount >= .5 && amount <= .9;
             cast();
           },
         } }],
@@ -1027,33 +1116,33 @@ dialog textarea { min-height: 170px; width: 100%; }
       const wind = pick(3) - 1;
       windName = wind > 0 ? '順風' : wind < 0 ? '逆風' : '微風';
       const adjusted = Math.max(.08, Math.min(1, castPower + wind * .035));
-      perfectCast = perfectCast && adjusted >= .60 && adjusted <= .85;
+      perfectCast = perfectCast && adjusted >= .48 && adjusted <= .92;
       updateReadout('🍃 ' + windName + ' · ' + currentFish.name, '第 ' + (attempts + 1) + ' 投／3');
-      updateGauge('落點', perfectCast ? '漂亮！' : '落水', adjusted);
-      setTip(perfectCast ? '正中魚群附近，這竿很漂亮！' : '魚餌落水了，盯緊浮標。');
-      status('魚餌落水，先觀察浮標的動靜。');
+      updateGauge('落點', perfectCast ? '漂亮！' : '落水', adjusted, 'cast');
+      setTip(perfectCast ? '落在魚群附近，這竿很漂亮！' : '沒有完美也沒關係，魚餌已經下水。');
+      status('第二步：等浮標完全沉下；輕輕晃動只是魚在試探。');
       paint({ stage: 'wait', bobberX, fishX: bobberX + 8, fishY: 60 });
       later(() => {
           paint({ stage: 'wait', tease: true, bobberX, bobberY: 67, fishX: bobberX + 2, fishY: 88 });
-        setTip('浮標輕晃了⋯⋯牠還在試探魚餌。');
-        status('浮標輕輕動了一下，先等等。');
+        setTip('浮標輕晃是試探，還不是咬鉤。');
+        status('浮標輕輕動了一下，再等它完全沉下。');
         later(() => {
           phaseStarted = performance.now();
           paint({ stage: 'bite', bobberX, bobberY: 82, fishX: bobberX + 4, fishY: 75 });
           chirp(930, .09);
           buzz([22, 30, 22]);
-          setTip('咬鉤了！看到浮標下沉，立刻揚竿！');
-          status('浮標沉了！現在按「揚竿勾魚」。');
+          setTip('浮標完全沉下就是咬鉤，現在按下面的按鈕！');
+          status('咬鉤了！按「揚竿勾魚」。妳有兩秒左右的時間。');
           buttons([['揚竿勾魚', hook]]);
-          later(() => nextAttempt('魚把餌吃了，妳差一點點！'), 1450);
+          later(() => nextAttempt('魚把餌吃了，這次慢了一點。'), 2200);
         }, 760 + pick(360));
       }, 1400 + pick(1200) - (perfectCast ? 350 : 0));
     }
     function hook() {
-      if (performance.now() - phaseStarted > 1450) return;
+      if (performance.now() - phaseStarted > 2200) return;
       stopGame();
-      progress = perfectCast ? .16 : .08;
-      tension = .26;
+      progress = perfectCast ? .2 : .12;
+      tension = .2;
       dangerTime = 0;
       lastTick = performance.now();
       phaseStarted = lastTick;
@@ -1063,8 +1152,8 @@ dialog textarea { min-height: 170px; width: 100%; }
       chirp(1120, .14, 'triangle');
       buzz(28);
       updateReadout('✨ 上鉤！' + currentFish.name, '魚力 ' + Math.round(currentFish.difficulty * 100) + '%');
-      status('勾住了！按住收線拉近，魚掙扎變紅時放開。');
-      setTip('綠色線槽是安全區，黃色代表緊繃，紅色可能斷線。');
+      status('第三步：按住收線。張力快到黃色就放開，回到綠色再收。');
+      setTip('放開會讓張力下降；等魚靠近，距離到 0 就釣到了。');
       gauge.className = 'fish-gauge tension';
       buttons([['按住收線', null, { hold: {
         start() { held = true; chirp(470, .045); },
@@ -1087,22 +1176,22 @@ dialog textarea { min-height: 170px; width: 100%; }
           setTip('魚力變小了，回到綠色張力區繼續收線。');
         }
         if (held) {
-          tension += dt * (.25 + struggle * .20) * currentFish.difficulty;
-          if (!surge && tension >= .24 && tension <= .72) progress += dt * (.20 + castPower * .04) / currentFish.difficulty;
-          else if (tension > .72) progress += dt * .018;
-          if (surge) tension += dt * .20;
+          tension += dt * (.20 + struggle * .16) * currentFish.difficulty;
+          if (!surge && tension >= .18 && tension <= .78) progress += dt * (.25 + castPower * .035) / currentFish.difficulty;
+          else if (tension > .78) progress += dt * .02;
+          if (surge) tension += dt * .13;
         } else {
-          tension -= dt * .34;
-          progress = Math.max(perfectCast ? .16 : .08, progress - dt * .018);
+          tension -= dt * .42;
+          progress = Math.max(perfectCast ? .2 : .12, progress - dt * .012);
         }
         tension = Math.max(0, Math.min(1, tension));
-        if (tension > .84) dangerTime += dt;
+        if (tension > .94) dangerTime += dt;
         else dangerTime = Math.max(0, dangerTime - dt * 1.6);
         updateGauge('魚線張力', Math.round(tension * 100) + '%', tension, 'tension');
         roundLabel.textContent = '距離 ' + Math.max(0, 100 - Math.round(progress * 100)) + '%';
         fill.style.background = tension > .75 ? 'linear-gradient(90deg,#ffca72,#ff6384)' : '';
         paint({ stage: 'reel', bobberX, bobberY: 69 + Math.sin(now / 250) * 1.5, fishX: bobberX - 24 + Math.sin(now / 460) * 12, fishY: 86, surge, tension, progress });
-        if (dangerTime >= .75) {
+        if (dangerTime >= 1.35) {
           chirp(190, .26);
           return nextAttempt('魚線繃得太緊，啪一聲斷掉了。');
         }
@@ -1120,9 +1209,9 @@ dialog textarea { min-height: 170px; width: 100%; }
           }
           return showCast('漂亮收線，' + currentFish.name + '到手！再來一竿。');
         }
-        if (tension > .72) setTip(surge ? '魚正在猛衝！先放開，讓張力降下來。' : '張力偏高，放開一小會兒再收。');
-        else if (!held) setTip('線鬆下來了，張力回到綠色區再按住收線。');
-        else setTip('收得漂亮，魚正在靠近！留意張力槽。');
+        if (tension > .78) setTip(surge ? '魚突然往外衝，放開按鈕讓線鬆一點。' : '快到黃色區了，放開一下，魚線就不會繃斷。');
+        else if (!held) setTip('張力回到綠色區了，可以再按住收線。');
+        else setTip('很好，魚正在靠近；看到張力升到黃色就放開。');
         later(reelTick, 70);
       }
       reelTick();
@@ -1132,7 +1221,7 @@ dialog textarea { min-height: 170px; width: 100%; }
   }
 
   function fightingGame({ view, buttons, status, updateScore, finish, later, paint, sound }) {
-    const total = 5;
+    const total = 3;
     let hits = 0;
     let attempts = 0;
     let phase = 'windup';
@@ -1174,7 +1263,7 @@ dialog textarea { min-height: 170px; width: 100%; }
       if (hit) { try { navigator.vibrate?.([16, 28, 18]); } catch {} }
       updateScore(hits, attempts, total);
       if (attempts >= total) {
-        const title = hits === total ? '格鬥冠軍！' : hits >= 3 ? '連招高手！' : hits >= 1 ? '漂亮反擊！' : '再練一回合？';
+        const title = hits === total ? '格鬥冠軍！' : hits >= 2 ? '連招高手！' : hits >= 1 ? '漂亮反擊！' : '再練一回合？';
         const result = '成功反擊 ' + hits + '／' + total;
         return finish(result, { title, subtitle: result });
       }
@@ -1290,12 +1379,12 @@ dialog textarea { min-height: 170px; width: 100%; }
     let duration = 2000;
     function next(message = '隕石來了！看清空航道，在撞上前移過去。') {
       safeLane = pick(3);
-      duration = Math.max(1120, 2050 - attempts * 185);
+      duration = Math.max(1650, 2050 - attempts * 170);
       phaseStarted = performance.now();
       paint({ cue: 'obstacles', safe: safeLane, arrival: 0, playerLane });
       showLanes(view, ['←', '↑', '→'], directions.map((direction, index) => direction + '航道' + (index === playerLane ? '，目前位置' : '')), playerLane);
       status(message);
-      updateScore(hits, attempts, 5);
+      updateScore(hits, attempts, 3);
       buttons(directions.map((direction, index) => [direction + (index === playerLane ? '航道' : '移到' + direction), () => {
         playerLane = index;
         const arrival = Math.min(1, (performance.now() - phaseStarted) / duration);
@@ -1313,9 +1402,9 @@ dialog textarea { min-height: 170px; width: 100%; }
         paint({ cue: 'obstacles', safe: safeLane, arrival: 1, playerLane, effect: true, hit, input: playerLane });
         sound(hit ? 870 : 230, .14, hit ? 'triangle' : 'square');
         if (hit) { try { navigator.vibrate?.(16); } catch {} }
-        if (attempts === 5) {
-          const title = hits === 5 ? '王牌飛行員！' : hits >= 3 ? '航道高手！' : hits >= 1 ? '成功脫險！' : '重整再出發？';
-          const result = '安全通過 ' + hits + '／5';
+        if (attempts === 3) {
+          const title = hits === 3 ? '王牌飛行員！' : hits >= 2 ? '航道高手！' : hits >= 1 ? '成功脫險！' : '重整再出發？';
+          const result = '安全通過 ' + hits + '／3';
           return finish(result, { title, subtitle: result });
         }
         later(() => next(hit ? '漂亮閃過！下一波來得更快。' : '碰到碎石了，重新找空航道。'), 500);
@@ -1332,7 +1421,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     let shots = 0;
     let hits = 0;
     let lastShot = 0;
-    const total = 5;
+    const total = 3;
     function drawAimStatus(message) {
       paint({ aim: target, playerAim: aim });
       showLanes(view, ['←', '◎', '→'], directions.map((direction, index) => direction + '瞄準' + (index === aim ? '，準星目前位置' : '')), aim);
@@ -1357,7 +1446,7 @@ dialog textarea { min-height: 170px; width: 100%; }
       if (hit) { try { navigator.vibrate?.(12); } catch {} }
       updateScore(hits, shots, total);
       if (shots === total) {
-        const title = hits === total ? '銀河神槍手！' : hits >= 3 ? '王牌射手！' : hits >= 1 ? '擊落成功！' : '再鎖定目標？';
+        const title = hits === total ? '銀河神槍手！' : hits >= 2 ? '王牌射手！' : hits >= 1 ? '擊落成功！' : '再鎖定目標？';
         const result = '命中 ' + hits + '／' + total;
         return finish(result, { title, subtitle: result });
       }
@@ -1408,15 +1497,26 @@ dialog textarea { min-height: 170px; width: 100%; }
     if (!card || state.used) return;
     const apply = () => {
       state.used = true;
+      get('schedule').open = true;
       toast('已使用「' + card.name + '」');
     };
     if (card.kind === 'free') {
-      openDialog(card.name, [element('p', card.text)], apply, '使用卡片');
+      const slots = freeTimeSlots();
+      if (!slots.length) {
+        toast('今天沒有完整的 30 分鐘空檔可以放入自由時間。');
+        return;
+      }
+      const slot = selectFor(slots, slots[0][0]);
+      openDialog(card.name, [element('p', card.text), labeled('選擇自由時間', slot)], () => {
+        state.tasks.push({ emoji: '💗', name: '自由時間', time: slot.value, status: 'todo', fixed: false, rewardEarned: false });
+        sortTasks();
+        apply();
+      }, '加入行程');
       return;
     }
-    const eligible = state.tasks.flatMap((task, index) => task.fixed ? [] : [[index, task.name + ' · ' + task.time]]);
+    const eligible = state.tasks.flatMap((task, index) => task.fixed || !parseTimeRange(task.time) ? [] : [[index, task.name + ' · ' + task.time]]);
     if (eligible.length < (card.kind === 'swap' ? 2 : 1)) {
-      toast('目前沒有足夠的非固定任務可使用這張卡。');
+      toast(card.kind === 'swap' ? '目前沒有兩項可交換的定時任務。' : '目前沒有可延後或略過的定時任務。');
       return;
     }
     const first = selectFor(eligible);
@@ -1435,8 +1535,14 @@ dialog textarea { min-height: 170px; width: 100%; }
         }
         const other = state.tasks[Number(second.value)];
         [task.time, other.time] = [other.time, task.time];
+        sortTasks();
       } else if (card.kind === 'delay') {
-        task.time += ' · 延後 30 分鐘（待調整）';
+        const start = parseTimeRange(task.time).start;
+        for (const scheduled of state.tasks) {
+          const range = parseTimeRange(scheduled.time);
+          if (!scheduled.fixed && range && range.start >= start) scheduled.time = timeRange(range.start + 30, range.end + 30);
+        }
+        sortTasks();
       } else {
         task.status = 'skip';
       }
@@ -1456,6 +1562,7 @@ dialog textarea { min-height: 170px; width: 100%; }
         return false;
       }
       state.tasks.push({ emoji: '⭐', name: title, time: time.value.trim() || '自由安排', status: 'todo', fixed: false });
+      sortTasks();
     });
   };
 
