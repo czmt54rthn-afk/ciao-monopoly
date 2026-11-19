@@ -68,20 +68,42 @@ main { width: min(100% - 28px, 920px); margin: 26px auto 48px; }
 .roll-station { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 15px; }
 .dice { min-width: 36px; font-size: 2.35rem; line-height: 1; text-align: center; }
 .turn { flex: 1 1 170px; margin: 0; font-size: .9rem; color: var(--muted); }
-.game { margin: 0 13px 14px; padding: 13px; border: 3px solid var(--ink); border-radius: 10px; background: #302546; color: var(--paper); }
-.game-header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.game-header h3 { color: var(--yellow); margin: 0; }
-.game-score { margin: 0; font-size: .85rem; font-weight: 800; }
-.game-help { margin: 7px 0; font-size: .9rem; }
-.game-screen { display: grid; place-content: center; justify-items: center; gap: 8px; min-height: 94px; padding: 10px; margin: 10px 0; background: #211a32; border: 2px solid #b99cdc; border-radius: 6px; text-align: center; }
-.pixel-display { display: block; width: 100%; max-width: 576px; aspect-ratio: 192 / 74; margin: 9px auto 0; border: 3px solid #c4a4e2; border-radius: 5px; background: #211a32; image-rendering: pixelated; }
-.game-screen { max-width: 576px; margin-inline: auto; min-height: 63px; }
-.game-controls .btn { min-height: 46px; box-shadow: 0 4px #1e1633; }
-.game-controls .btn:active:enabled { transform: translateY(3px); box-shadow: 0 1px #1e1633; }
+.arcade { --cabinet: #b8e5cc; --screen-ink: #17142c; background: var(--cabinet); }
+.arcade .panel-head { background: #ffdb7a; }
+.arcade .counter { background: var(--paper); }
+.game { --game-accent: #ffdb61; margin: 0 13px 14px; padding: clamp(10px, 3vw, 20px); border: 3px solid #24213b; border-radius: 16px; background: #2d2848; color: var(--paper); box-shadow: inset 0 0 0 2px #514a6c, 0 3px #24213b; }
+.game[data-face="1"] { --game-accent: #ffcb72; }
+.game[data-face="2"] { --game-accent: #9fedda; }
+.game[data-face="3"] { --game-accent: #ffa5bf; }
+.game[data-face="4"] { --game-accent: #d6b8ff; }
+.game[data-face="5"] { --game-accent: #f6bb98; }
+.game[data-face="6"] { --game-accent: #b0ef93; }
+.game-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 9px; }
+.game-header h3 { color: var(--game-accent); margin: 0; font: 900 clamp(1.08rem, 4vw, 1.44rem) / 1.2 ui-monospace, monospace; }
+.game-score { margin: 0; border: 1px solid #8074a1; border-radius: 4px; padding: 4px 7px; background: #19172c; font: 800 .8rem ui-monospace, monospace; }
+.game-score:empty { display: none; }
+.game-help { margin: 9px 0; font-size: .88rem; color: #eee2fc; }
+.game-bezel { position: relative; isolation: isolate; border: 3px solid #151427; border-radius: 10px; overflow: hidden; background: #1b1730; box-shadow: 0 0 0 2px #6d5d91, 0 5px #181528; }
+.game-bezel::after { position: absolute; content: ""; inset: 0; background: repeating-linear-gradient(0deg, #1713291c 0 1px, transparent 1px 4px); box-shadow: inset 0 0 22px #100a2680; pointer-events: none; }
+.pixel-display { display: block; width: 100%; aspect-ratio: 192 / 74; background: #211a32; image-rendering: pixelated; }
+.game-overlay { position: absolute; z-index: 1; inset: 0; display: grid; place-content: center; justify-items: center; gap: 5px; padding: 8px; text-align: center; background: linear-gradient(90deg, #1a122238, #1a1222bd 38% 62%, #1a122238); }
+.game-overlay[hidden] { display: none; }
+.game-overlay strong { color: var(--game-accent); font: 1000 clamp(1.24rem, 5vw, 2.5rem) / 1 ui-monospace, monospace; text-shadow: 2px 3px #21142d; }
+.game-overlay span { color: white; font-weight: 800; font-size: clamp(.73rem, 2.6vw, .95rem); }
+.game-bay { max-width: 640px; margin-inline: auto; }
+.game-screen { display: grid; place-items: center; gap: 6px; min-height: 41px; padding: 6px; margin: 10px 0 8px; color: #fff7df; text-align: center; }
+.game-screen[hidden] { display: none; }
+.game-screen > div:empty { display: none; }
+.game-controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
+.game-controls .btn { color: #201e34; background: var(--game-accent); min-height: 48px; min-width: 70px; padding-inline: 13px; border-radius: 23px; border: 2px solid #1a142d; box-shadow: inset 0 2px #ffffff70, 0 4px #151128; }
+.game-controls .btn:nth-child(even) { background: #e0cef9; }
+.game-controls .btn:hover:enabled { background: var(--paper); }
+.game-controls .btn:active:enabled { transform: translateY(3px); box-shadow: inset 0 2px #ffffff70, 0 1px #151128; }
 .game-score[data-finished="true"] { color: var(--mint); }
-.game-prompt { margin: 0; font-weight: 800; }
-.game-controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
-.game-controls .btn { color: var(--ink); min-width: 60px; }
+.game-prompt { margin: 0; font-weight: 800; font-size: .87rem; }
+.arcade-idle { padding-bottom: 14px; }
+.arcade-idle .game-overlay { align-content: end; justify-items: start; text-align: left; padding: clamp(12px, 3vw, 23px); background: linear-gradient(0deg, #181128dc, #18112800 78%); }
+.arcade-idle .game-overlay strong { color: #ffdf80; letter-spacing: .045em; }
 .game-symbol { font-size: 1.65rem; line-height: 1; letter-spacing: .13em; }
 .game-lanes { display: flex; gap: 6px; }
 .game-lanes span { min-width: 54px; padding: 5px; border: 2px solid #b99cdc; border-radius: 5px; font-size: 1.1rem; }
@@ -122,6 +144,7 @@ dialog textarea { min-height: 170px; width: 100%; }
   .screen h1 { font-size: clamp(2.6rem, 12vw, 3.8rem); }
   .card { min-height: 91px; }
   .card-slot { padding: 10px; }
+  .game { margin-inline: 9px; }
 }
 </style>
 </head>
@@ -366,6 +389,8 @@ dialog textarea { min-height: 170px; width: 100%; }
   }
 
   const pixelSprites = {
+    mascot: ['......4.....', '.....44.....', '....443.....', '..2333332...', '.233333332..', '23353353332.', '23366666332.', '23363336332.', '.233333332..', '..2233322...', '...2...2....', '..22...22...'],
+    cartridge: ['..111111..', '.13333331.', '1334444331', '1334224331', '1334444331', '1333333331', '1434343441', '1111111111'],
     player: ['..333...', '.33333..', '.32525..', '..222...', '..444...', '.14441..', '..444...', '..4.4...', '.11.11..'],
     robot: ['...3....', '..333...', '.34443..', '.32323..', '..333...', '.14441..', '..444...', '.11.11..'],
     fish: ['.......', '...33..', '1.3333.', '133232.', '1.3333.', '...33..'],
@@ -376,6 +401,8 @@ dialog textarea { min-height: 170px; width: 100%; }
     ring: ['..333..', '.33233.', '33...33', '33...33', '33...33', '.33333.', '..333..'],
   };
   const spriteColors = {
+    mascot: ['#231630', '#62405d', '#fb9aab', '#9ff2ad', '#422b53', '#fff0ba'],
+    cartridge: ['#291c47', '#201b38', '#b99cf2', '#e0ceff'],
     player: ['#282036', '#ffdcbb', '#5cdb9c', '#a89bff', '#37233f'],
     robot: ['#463059', '#ffeb9b', '#fa83ae', '#bc57a0'],
     fish: ['#ffd16b', '#47284c', '#ffa56a'],
@@ -391,7 +418,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     if (!ctx) return () => {};
     const width = canvas.width;
     const height = canvas.height;
-    let currentEffect;
+    let frame;
     let scene = {};
     function box(x, y, w, h, color) {
       ctx.fillStyle = color;
@@ -430,15 +457,27 @@ dialog textarea { min-height: 170px; width: 100%; }
         for (let y = 26; y < height; y += 9) box(32 + lane * 42, y, 1, 4, '#513c70');
       }
     }
-    function burst(x, y, color) {
+    function burst(x, y, color, phase = 1) {
       for (const [dx, dy] of [[0,-6], [0,6], [-7,0], [7,0], [-5,-4], [5,4], [5,-4], [-5,4]]) {
-        box(x + dx, y + dy, 3, 2, color);
+        box(x + dx * phase, y + dy * phase, 3, 2, color);
       }
     }
-    function paint(effect) {
+    function paint(phase = 0) {
+      const effect = phase > 0;
       const { cue, safe = 1, aim = 1, input, hit, color, sequence = [] } = scene;
       ctx.imageSmoothingEnabled = false;
-      if (face === 1) {
+      if (face === 0) {
+        landscape();
+        box(0, 60, width, 14, '#312741');
+        box(116, 52, 54, 6, '#b4718c');
+        box(121, 58, 44, 11, '#794e81');
+        for (let i = 0; i < 7; i++) box(121 + i * 7, 59, 3, 4, '#b78cb3');
+        sprite('mascot', 123, 21, 3);
+        sprite('cartridge', 163, 28, 2);
+        burst(117, 17, '#fff5ae');
+        burst(176, 15, '#fff1ae', .55);
+        sprite('tree', 101, 40, 2);
+      } else if (face === 1) {
         landscape();
         sprite('tree', 5, 31, 2);
         sprite('tree', 170, 29, 2);
@@ -448,8 +487,8 @@ dialog textarea { min-height: 170px; width: 100%; }
           box(x, y, 8, 4, '#f7d773');
           box(x + 5, y + 2, 3, 11, '#bd7666');
         }
-        sprite('ring', effect ? 112 : 49, effect ? 34 : 45);
-        if (effect) burst(119, 43, hit ? '#fff384' : '#ff9aba');
+        sprite('ring', effect ? 49 + phase * 65 : 49, effect ? 45 - Math.sin(phase * Math.PI) * 26 - phase * 7 : 45);
+        if (phase > .66) burst(119, 43, hit ? '#fff384' : '#ff9aba', phase);
       } else if (face === 2) {
         landscape(true);
         box(42, 48, width - 42, 26, '#367e91');
@@ -463,8 +502,8 @@ dialog textarea { min-height: 170px; width: 100%; }
           box(93, 54, 4, 3, '#ff9bb1');
         }
         if (cue === 'bite' || effect && hit) {
-          sprite('fish', 94, effect ? 35 : 52, 2);
-          burst(99, 53, '#c6f6e6');
+          sprite('fish', 94 - phase * 25, effect ? 52 - Math.sin(phase * Math.PI / 1.5) * 24 : 52, 2);
+          burst(99, 53, '#c6f6e6', effect ? phase : .45);
         }
       } else if (face === 3) {
         box(0, 0, width, height, '#53365f');
@@ -473,10 +512,15 @@ dialog textarea { min-height: 170px; width: 100%; }
         box(0, 58, width, 16, '#a96977');
         box(0, 58, width, 3, '#ffc17b');
         for (let i = 0; i < 12; i++) box(i * 17, 67, 10, 1, '#d38487');
-        sprite('player', 50 + (effect && input === 'attack' ? 13 : 0), 29, 3);
+        const step = Math.sin(phase * Math.PI);
+        sprite('player', 50 + (effect && input === 'attack' ? 25 * step : 0), 29, 3);
+        if (effect && input === 'block') {
+          box(72, 36, 4, 18, '#b8e9ed');
+          box(76, 40, 3, 10, '#78b8df');
+        }
         sprite('robot', 116 - (cue === 'attack' ? 8 : 0), 32, 3, true);
         if (cue) burst(126, 24, cue === 'attack' ? '#ffa1b0' : '#ffe681');
-        if (effect) burst(89, 43, hit ? '#ffec8e' : '#eab0f3');
+        if (effect) burst(89, 43, hit ? '#ffec8e' : '#eab0f3', phase);
       } else if (face === 4) {
         box(0, 0, width, height, '#2f284a');
         const lights = ['#f688b5', '#ffdb74', '#86e0ad', '#bb9bff'];
@@ -495,41 +539,79 @@ dialog textarea { min-height: 170px; width: 100%; }
           if (cue) for (let lane = 0; lane < 3; lane++) {
             if (lane !== safe) sprite('rock', 45 + lane * 42, 20 + lane % 2 * 5, 3);
           }
-          sprite('rocket', 48 + (effect ? input : 1) * 42, 49);
-          if (effect) burst(55 + input * 42, 48, hit ? '#91eac6' : '#ffad9f');
+          sprite('rocket', 90 + (effect ? (input - 1) * 42 * phase : 0), 49);
+          if (effect) burst(55 + input * 42, 48, hit ? '#91eac6' : '#ffad9f', phase);
         } else {
           sprite('invader', 47 + aim * 42, 13, 2);
           sprite('rocket', 48 + (effect ? input : 1) * 42, 49);
           if (effect) {
-            box(55 + input * 42, 30, 2, 17, '#f9e38b');
-            burst(55 + input * 42, 28, hit ? '#95ecba' : '#ffad9f');
+            box(55 + input * 42, 46 - phase * 28, 2, 9, '#f9e38b');
+            if (phase > .7) burst(55 + input * 42, 23, hit ? '#95ecba' : '#ffad9f', phase);
           }
         }
       }
     }
     return next => {
       scene = next;
-      clearTimeout(currentEffect);
-      paint(next.effect);
-      if (next.effect) currentEffect = setTimeout(() => paint(false), 220);
+      clearTimeout(frame);
+      if (!next.effect || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        paint(next.effect ? .86 : 0);
+        return;
+      }
+      const start = performance.now();
+      function animate() {
+        if (!canvas.isConnected) return;
+        const phase = (performance.now() - start) / 290;
+        paint(phase < 1 ? Math.max(.01, phase) : 0);
+        if (phase < 1) frame = setTimeout(animate, 32);
+      }
+      animate();
+    };
+  }
+
+  function cartridgeDisplay(face) {
+    const bezel = element('div', null, 'game-bezel');
+    const display = element('canvas', null, 'pixel-display');
+    const overlay = element('div', null, 'game-overlay');
+    const headline = element('strong');
+    const caption = element('span');
+    display.width = 192;
+    display.height = 74;
+    display.setAttribute('aria-hidden', 'true');
+    const paint = pixelStage(face, display);
+    paint({});
+    overlay.append(headline, caption);
+    bezel.append(display, overlay);
+    return {
+      bezel, paint,
+      message(title, subtitle) {
+        overlay.hidden = !title;
+        headline.textContent = title;
+        caption.textContent = subtitle ?? '';
+      },
     };
   }
 
   function openGame() {
     stopGame();
     const round = state.arcade.round;
-    if (!round) return;
+    const slot = get('game-slot');
+    const game = element('section', null, round ? 'game' : 'game arcade-idle');
+    const stage = cartridgeDisplay(round?.face ?? 0);
+    const bay = element('div', null, 'game-bay');
+    bay.append(stage.bezel);
+    game.append(bay);
+    slot.replaceChildren(game);
+    if (!round) {
+      stage.message('CIAO ARCADE', '骰一次，開一局');
+      return;
+    }
+
     const [name, help, play] = games[round.face - 1];
-    const game = element('section', null, 'game');
+    game.dataset.face = round.face;
     const header = element('header', null, 'game-header');
     const title = element('h3', name);
     const score = element('p', null, 'game-score');
-    const display = element('canvas', null, 'pixel-display');
-    display.width = 192;
-    display.height = 74;
-    display.setAttribute('aria-hidden', 'true');
-    const paint = pixelStage(round.face, display);
-    paint({});
     const screen = element('div', null, 'game-screen');
     const view = element('div');
     const prompt = element('p', null, 'game-prompt');
@@ -537,8 +619,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     prompt.setAttribute('role', 'status');
     header.append(title, score);
     screen.append(view, prompt);
-    game.append(header, element('p', help, 'game-help'), display, screen, controls);
-    get('game-slot').replaceChildren(game);
+    bay.replaceChildren(header, stage.bezel, element('p', help, 'game-help'), screen, controls);
     const buttons = entries => controls.replaceChildren(...entries.map(([label, action]) => {
       const button = element('button', label, 'btn yellow');
       button.type = 'button';
@@ -548,7 +629,8 @@ dialog textarea { min-height: 170px; width: 100%; }
     const status = message => { prompt.textContent = message; };
 
     if (round.finished) {
-      status('本局結束');
+      stage.message('本局結束', round.score);
+      screen.hidden = true;
       score.textContent = round.score;
       score.dataset.finished = 'true';
       return;
@@ -560,7 +642,8 @@ dialog textarea { min-height: 170px; width: 100%; }
       round.score = result;
       score.textContent = result;
       score.dataset.finished = 'true';
-      status('本局結束');
+      stage.message('本局結束', result);
+      screen.hidden = true;
       buttons([]);
       render();
     };
@@ -571,7 +654,11 @@ dialog textarea { min-height: 170px; width: 100%; }
       stopGame();
       gameTimer = setTimeout(callback, duration);
     };
-    buttons([['開始遊戲', () => play({ view, buttons, status, updateScore, finish, later, paint })]]);
+    stage.message(name.slice(name.indexOf(' ') + 1), '骰出 ' + round.face + ' 點');
+    buttons([['開始遊戲', () => {
+      stage.message('');
+      play({ view, buttons, status, updateScore, finish, later, paint: stage.paint });
+    }]]);
     status('準備好了就按開始。');
   }
 
@@ -847,7 +934,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     openDialog('重開一局', [element('p', '清除這個瀏覽器的進度，包含任務、卡片和擲骰獎勵，並回到 11/20 的初始行程。')], () => {
       state = newGame();
       stopGame();
-      get('game-slot').replaceChildren();
+      openGame();
     }, '重開一局');
   };
 
