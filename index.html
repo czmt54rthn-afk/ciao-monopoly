@@ -59,24 +59,39 @@ main { width: min(100% - 28px, 920px); margin: 26px auto 48px; }
 .deck-entry { border: 2px solid var(--ink); border-radius: 7px; background: var(--lavender); padding: 6px 8px; }
 .deck-entry dt { font-weight: 850; }
 .deck-entry dd { margin: 2px 0 0; font-size: .85rem; color: var(--muted); }
-.lower { display: grid; grid-template-columns: minmax(0, 1.16fr) minmax(280px, 1fr); gap: 16px; align-items: start; margin-top: 22px; }
 .panel { min-width: 0; border: var(--edge); border-radius: 14px; background: var(--paper); box-shadow: 4px 4px var(--ink); overflow: hidden; }
-.panel-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 11px 13px; background: var(--lavender); border-bottom: var(--edge); }
+.panel-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 11px 13px; background: var(--lavender); }
 .panel-head h2 { font-size: 1.14rem; margin: 0; }
 .counter { font: 800 .88rem ui-monospace, monospace; border: 2px solid var(--ink); padding: 4px 7px; border-radius: 5px; background: var(--yellow); }
-.board-wrap { padding: 10px; }
-.board { position: relative; display: grid; grid-template: repeat(5, minmax(60px, 1fr)) / repeat(5, minmax(0, 1fr)); gap: 4px; }
-.center { display: grid; place-content: center; justify-items: center; gap: 6px; padding: 8px; text-align: center; grid-area: 2 / 2 / 5 / 5; background: #e7d8f8; border: 2px solid var(--ink); border-radius: 9px; }
-.dice { font-size: 2.2rem; line-height: 1; }
-.turn { margin: 0; font-size: .78rem; color: var(--muted); }
-.tile { min-width: 0; position: relative; display: grid; place-content: center; justify-items: center; gap: 2px; min-height: 60px; background: var(--tile, #fffdf4); border: 2px solid var(--ink); border-radius: 5px; padding: 4px 1px; line-height: 1.15; }
-.tile:disabled { opacity: 1; }
-.tile:hover:enabled { background: var(--lavender); }
-.tile.current { box-shadow: inset 0 0 0 2px #7554e5; }
-.tile.done { background: var(--mint); }
-.tile.skip { background: #eee7e9; }
-.tile-label { font-size: .68rem; font-weight: 800; overflow-wrap: anywhere; }
-.pawn { position: absolute; right: 1px; top: 0; font-size: .76rem; }
+.arcade, .schedule { margin-top: 20px; }
+.arcade .panel-head { border-bottom: var(--edge); }
+.roll-station { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 15px; }
+.dice { min-width: 36px; font-size: 2.35rem; line-height: 1; text-align: center; }
+.turn { flex: 1 1 170px; margin: 0; font-size: .9rem; color: var(--muted); }
+.game { margin: 0 13px 14px; padding: 13px; border: 3px solid var(--ink); border-radius: 10px; background: #302546; color: var(--paper); }
+.game-header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.game-header h3 { color: var(--yellow); margin: 0; }
+.game-score { margin: 0; font-size: .85rem; font-weight: 800; }
+.game-help { margin: 7px 0; font-size: .9rem; }
+.game-screen { display: grid; place-content: center; justify-items: center; gap: 8px; min-height: 94px; padding: 10px; margin: 10px 0; background: #211a32; border: 2px solid #b99cdc; border-radius: 6px; text-align: center; }
+.game-prompt { margin: 0; font-weight: 800; }
+.game-controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+.game-controls .btn { color: var(--ink); min-width: 60px; }
+.game-symbol { font-size: 1.65rem; line-height: 1; letter-spacing: .13em; }
+.game-lanes { display: flex; gap: 6px; }
+.game-lanes span { min-width: 54px; padding: 5px; border: 2px solid #b99cdc; border-radius: 5px; font-size: 1.1rem; }
+.meter { position: relative; width: clamp(130px, 45vw, 300px); height: 20px; background: #ded2ff; border: 2px solid #fff8e7; border-radius: 5px; }
+.meter-target, .meter-marker { position: absolute; top: 0; bottom: 0; }
+.meter-target { background: #80d4a2; }
+.meter-marker { width: 5px; background: #221433; transform: translateX(-50%); }
+.schedule summary { cursor: pointer; font-weight: 850; list-style: none; }
+.schedule summary::-webkit-details-marker { display: none; }
+.schedule summary::before { content: '▸'; }
+.schedule[open] summary::before { content: '▾'; }
+.schedule summary .counter { margin-left: auto; }
+.schedule[open] summary { border-bottom: var(--edge); }
+.schedule .close-label, .schedule[open] .open-label { display: none; }
+.schedule[open] .close-label { display: inline; }
 .tasks { display: grid; padding: 3px 12px; }
 .task { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 7px; padding: 8px 0; border-bottom: 1px solid #d8c7df; }
 .task:last-child { border-bottom: 0; }
@@ -96,7 +111,6 @@ dialog p { margin: 0; }
 dialog textarea { min-height: 170px; width: 100%; }
 .toast { position: fixed; z-index: 1; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink); color: white; border-radius: 7px; padding: 9px 12px; text-align: center; width: max-content; max-width: calc(100% - 22px); margin: 0; }
 .toast:empty { display: none; }
-@media (max-width: 700px) { .lower { grid-template-columns: 1fr; } }
 @media (max-width: 530px) {
   main { margin-top: 16px; }
   .screen { grid-template-columns: 1fr; gap: 15px; }
@@ -135,37 +149,39 @@ dialog textarea { min-height: 170px; width: 100%; }
     <summary>怎麼玩？看規則和 4 種卡片</summary>
     <div class="rules-body">
       <ol>
-        <li><strong>抽牌。</strong>直接點「抽一張卡」就能抽。也可以擲骰，走到「命運」或「機會」格時自動抽。</li>
+        <li><strong>抽牌。</strong>直接點「抽一張卡」，抽出今天的改道選項。</li>
         <li><strong>決定要不要改道。</strong>每局只抽 1 張，用完就結束這局的改道機會。想用時點「使用卡片」，照卡片提示確認。</li>
-        <li><strong>記錄行程。</strong>做完一項任務，就在「今日任務」標記完成。棋盤上的任務格也能點開更新狀態。</li>
+        <li><strong>記錄行程。</strong>展開行程，把任務標記完成。每項任務第一次完成可得 1 次擲骰，骰出的點數決定要玩哪款小遊戲。</li>
       </ol>
       <dl class="deck-list" id="deck-list"></dl>
     </div>
   </details>
 
-  <div class="lower">
-    <section class="panel" aria-labelledby="board-title">
-      <header class="panel-head"><h2 id="board-title">🎲 行程棋盤</h2></header>
-      <div class="board-wrap">
-        <div class="board" id="board">
-          <div class="center">
-            <span class="dice" id="die" aria-hidden="true">🎲</span>
-            <button class="btn yellow" id="roll">擲骰子</button>
-            <p class="turn" id="turn" aria-live="polite">準備出發</p>
-          </div>
-        </div>
-      </div>
-    </section>
-    <section class="panel" aria-labelledby="task-title">
-      <header class="panel-head"><h2 id="task-title">🗓️ 今日任務</h2><span class="counter" id="progress"></span></header>
-      <div class="tasks" id="tasks"></div>
-      <div class="footer">
-        <button class="btn mint" id="add">新增任務</button>
-        <button class="btn" id="report">複製戰績</button>
-        <button class="btn" id="reset">重開一局</button>
-      </div>
-    </section>
-  </div>
+  <section class="panel arcade" aria-labelledby="arcade-title">
+    <header class="panel-head">
+      <h2 id="arcade-title">🎮 任務遊戲機</h2><span class="counter" id="credits">可骰 0 次</span>
+    </header>
+    <div class="roll-station">
+      <span class="dice" id="die" aria-hidden="true">🎲</span>
+      <button class="btn yellow" id="roll" disabled>擲骰子</button>
+      <p class="turn" id="turn" role="status">完成一項任務，就能骰一次。</p>
+    </div>
+    <div id="game-slot"></div>
+  </section>
+
+  <details class="panel schedule">
+    <summary class="panel-head">
+      <span class="open-label">展開今日行程</span>
+      <span class="close-label">收起今日行程</span>
+      <span class="counter" id="progress"></span>
+    </summary>
+    <div class="tasks" id="tasks"></div>
+    <div class="footer">
+      <button class="btn mint" id="add">新增任務</button>
+      <button class="btn" id="report">複製戰績</button>
+      <button class="btn" id="reset">重開一局</button>
+    </div>
+  </details>
 </main>
 
 <dialog id="dialog" aria-labelledby="dialog-title">
@@ -200,22 +216,19 @@ dialog textarea { min-height: 170px; width: 100%; }
     { emoji: '💗', name: '自由卡', text: '留 30 分鐘給自己，自由安排。', kind: 'free' },
     { emoji: '😈', name: '免責卡', text: '跳過一項非固定任務。完成率照實記錄。', kind: 'skip' },
   ];
-  const path = [[5,5],[5,4],[5,3],[5,2],[5,1],[4,1],[3,1],[2,1],[1,1],[1,2],[1,3],[1,4],[1,5],[2,5],[3,5],[4,5]];
-  const special = {
-    0: ['🏁', '起點', '#ffdb61'],
-    4: ['✦', '命運', '#ff88ae'],
-    8: ['🎁', '獎勵', '#bde5cd'],
-    12: ['✦', '機會', '#ff88ae'],
-  };
   const statuses = [['todo', '待執行'], ['done', '✓ 完成'], ['skip', '未完成']];
   const newGame = () => ({
     tasks: schedule.map(([emoji, name, time, fixed]) => ({ emoji, name, time, fixed: Boolean(fixed), status: 'todo' })),
-    position: 0, card: null, used: false, rolls: 0,
+    card: null, used: false, arcade: { spent: 0, round: null },
   });
   let state = newGame();
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
-    if (Array.isArray(saved?.tasks)) state = saved;
+    if (Array.isArray(saved?.tasks)) {
+      state = saved;
+      state.arcade ??= { spent: 0, round: null };
+      for (const task of state.tasks) task.rewardEarned ??= task.status === 'done';
+    }
   } catch {}
   let toastTimer;
 
@@ -277,40 +290,6 @@ dialog textarea { min-height: 170px; width: 100%; }
     get('deck-list').append(entry);
   }
 
-  function renderBoard() {
-    const board = get('board');
-    board.querySelectorAll('.tile').forEach(tile => tile.remove());
-    const taskSlots = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15];
-    path.forEach(([row, column], position) => {
-      const task = state.tasks[taskSlots.indexOf(position)];
-      const space = special[position];
-      const [emoji, name, color] = space ?? [task?.emoji ?? '·', task?.name ?? '空格', '#fffdf4'];
-      const tile = element('button', null, 'tile');
-      tile.style.gridRow = row;
-      tile.style.gridColumn = column;
-      tile.style.setProperty('--tile', color);
-      tile.append(element('span', emoji), element('span', name, 'tile-label'));
-      if (task?.status !== 'todo' && task) tile.classList.add(task.status);
-      if (position === state.position) {
-        tile.classList.add('current');
-        tile.append(element('span', '🎩', 'pawn'));
-        tile.setAttribute('aria-current', 'location');
-      }
-      if (task) {
-        tile.title = task.time;
-        tile.onclick = () => {
-          const select = selectFor(statuses, task.status);
-          openDialog(task.name, [element('p', task.time), labeled('任務狀態', select)], () => { task.status = select.value; });
-        };
-      } else if ([4, 12].includes(position) && !state.card && !state.used) {
-        tile.onclick = drawCard;
-      } else {
-        tile.disabled = true;
-      }
-      board.append(tile);
-    });
-  }
-
   function renderTasks() {
     const tasks = get('tasks');
     tasks.replaceChildren();
@@ -320,7 +299,14 @@ dialog textarea { min-height: 170px; width: 100%; }
       description.append(element('strong', task.name), element('small', task.time + (task.fixed ? ' · 固定' : '')));
       const select = selectFor(statuses, task.status);
       select.setAttribute('aria-label', task.name + '狀態');
-      select.onchange = () => { task.status = select.value; render(); };
+      select.onchange = () => {
+        task.status = select.value;
+        if (task.status === 'done' && !task.rewardEarned) {
+          task.rewardEarned = true;
+          toast('任務完成！獲得 1 次擲骰。');
+        }
+        render();
+      };
       row.append(element('span', task.emoji), description, select);
       tasks.append(row);
     }
@@ -338,26 +324,288 @@ dialog textarea { min-height: 170px; width: 100%; }
     get('card-name').textContent = card?.name ?? '今日改道卡';
     get('card-text').textContent = card?.text ?? '交換時段、延後、自由時間或跳過任務。';
     get('card-status').textContent = state.used ? '本局已使用' : card ? '本局已抽 1 張，隨時可以使用' : '本局可隨機抽 1 張';
-    get('turn').textContent = state.rolls ? '第 ' + state.rolls + ' 次擲骰 · 第 ' + (state.position + 1) + ' 格' : '準備出發';
-    renderBoard();
+    renderArcade();
     renderTasks();
     try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch {}
   }
 
-  get('draw').onclick = drawCard;
-  get('cancel').onclick = () => get('dialog').close();
-  get('roll').onclick = () => {
-    const roll = 1 + Math.floor(Math.random() * 6);
-    state.position = (state.position + roll) % path.length;
-    state.rolls++;
-    get('die').textContent = ['🎲', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'][roll];
-    if ([4, 12].includes(state.position) && !state.card && !state.used) drawCard();
-    else {
-      render();
-      toast('擲出 ' + roll + ' 點');
+  const games = [
+    ['⭕ 套圈圈', '等指標進入綠色區域，再按「丟圈」。三次機會。', ringGame],
+    ['🎣 釣魚', '拋竿後等到魚咬鉤，再按「收線」。三次機會。', fishingGame],
+    ['🥊 像素格鬥', '對手出拳就防禦，露出破綻就出拳。打五回合。', fightingGame],
+    ['🧠 閃燈記憶', '看完顏色順序，再照順序按出來。三輪，順序會愈來愈長。', memoryGame],
+    ['🚀 閃躲隕石', '每回合選一條沒有隕石的航道。撐過五回合。', dodgeGame],
+    ['👾 外星射手', '外星人會在三條軌道移動。看準牠所在的位置再開火，三次機會。', shooterGame],
+  ];
+  const faces = ['🎲', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+  const pick = length => Math.floor(Math.random() * length);
+  let gameTimer;
+
+  function stopGame() {
+    clearTimeout(gameTimer);
+  }
+
+  function renderArcade() {
+    const credits = state.tasks.filter(task => task.rewardEarned).length - state.arcade.spent;
+    const round = state.arcade.round;
+    get('credits').textContent = '可骰 ' + Math.max(0, credits) + ' 次';
+    get('die').textContent = faces[round?.face ?? 0];
+    get('roll').disabled = credits <= 0 || Boolean(round && !round.finished);
+    if (round && !round.finished) {
+      get('turn').textContent = '骰出 ' + round.face + ' 點。玩完這局就能再骰。';
+    } else if (credits > 0) {
+      get('turn').textContent = '擲骰解鎖一局復古小遊戲。';
+    } else {
+      get('turn').textContent = '展開下方行程，完成一項任務就能骰一次。';
     }
+  }
+
+  function openGame() {
+    stopGame();
+    const round = state.arcade.round;
+    if (!round) return;
+    const [name, help, play] = games[round.face - 1];
+    const game = element('section', null, 'game');
+    const header = element('header', null, 'game-header');
+    const title = element('h3', name);
+    const score = element('p', null, 'game-score');
+    const screen = element('div', null, 'game-screen');
+    const view = element('div');
+    const prompt = element('p', null, 'game-prompt');
+    const controls = element('div', null, 'game-controls');
+    prompt.setAttribute('role', 'status');
+    header.append(title, score);
+    screen.append(view, prompt);
+    game.append(header, element('p', help, 'game-help'), screen, controls);
+    get('game-slot').replaceChildren(game);
+    const buttons = entries => controls.replaceChildren(...entries.map(([label, action]) => {
+      const button = element('button', label, 'btn yellow');
+      button.type = 'button';
+      button.onclick = action;
+      return button;
+    }));
+    const status = message => { prompt.textContent = message; };
+
+    if (round.finished) {
+      status('本局結束');
+      score.textContent = round.score;
+      return;
+    }
+
+    const finish = result => {
+      stopGame();
+      round.finished = true;
+      round.score = result;
+      score.textContent = result;
+      status('本局結束');
+      buttons([]);
+      render();
+    };
+    const updateScore = (hits, attempts, total) => {
+      score.textContent = '得分 ' + hits + ' · 回合 ' + attempts + '/' + total;
+    };
+    const later = (callback, duration) => {
+      stopGame();
+      gameTimer = setTimeout(callback, duration);
+    };
+    buttons([['開始遊戲', () => play({ view, buttons, status, updateScore, finish, later })]]);
+    status('準備好了就按開始。');
+  }
+
+  function ringGame({ view, buttons, status, updateScore, finish, later }) {
+    const meter = element('div', null, 'meter');
+    const target = element('span', null, 'meter-target');
+    const marker = element('span', null, 'meter-marker');
+    meter.setAttribute('aria-label', '套圈圈時機指標');
+    meter.append(target, marker);
+    view.replaceChildren(meter);
+    let hits = 0;
+    let attempts = 0;
+    let position = 0;
+    let center = 25 + pick(51);
+    let started = performance.now();
+    const targetWidth = 24;
+    const setTarget = () => {
+      target.style.left = (center - targetWidth / 2) + '%';
+      target.style.width = targetWidth + '%';
+    };
+    function animate() {
+      const phase = ((performance.now() - started) % 1700) / 850;
+      position = (phase < 1 ? phase : 2 - phase) * 100;
+      marker.style.left = position + '%';
+      later(animate, 32);
+    }
+    setTarget();
+    animate();
+    updateScore(hits, attempts, 3);
+    status('看準綠色區域！');
+    buttons([['丟圈', () => {
+      const hit = Math.abs(position - center) <= targetWidth / 2;
+      hits += Number(hit);
+      attempts++;
+      if (attempts === 3) return finish('套中 ' + hits + '／3');
+      status(hit ? '套中了！' : '差一點，再試一次。');
+      updateScore(hits, attempts, 3);
+      center = 25 + pick(51);
+      started = performance.now();
+      setTarget();
+    }]]);
+  }
+
+  function fishingGame({ view, buttons, status, updateScore, finish, later }) {
+    let hits = 0;
+    let attempts = 0;
+    function ready(message = '準備拋竿！') {
+      status(message);
+      view.replaceChildren(element('span', '🌊', 'game-symbol'));
+      updateScore(hits, attempts, 3);
+      buttons([['拋竿', cast]]);
+    }
+    function resolve(result) {
+      stopGame();
+      attempts++;
+      if (attempts === 3) return finish('釣到 ' + hits + '／3 條魚');
+      ready(result);
+    }
+    function cast() {
+      let biting = false;
+      status('等魚靠近…');
+      buttons([['收線', () => {
+        hits += Number(biting);
+        resolve(biting ? '釣到了！' : '太早收線了。');
+      }]]);
+      later(() => {
+        biting = true;
+        view.replaceChildren(element('span', '🐟', 'game-symbol'));
+        status('咬鉤了，現在收線！');
+        later(() => resolve('魚跑掉了。'), 1150);
+      }, 650 + pick(901));
+    }
+    ready();
+  }
+
+  function fightingGame({ view, buttons, status, updateScore, finish }) {
+    let hits = 0;
+    let attempts = 0;
+    const cues = Array.from({ length: 5 }, (_, index) => (index + pick(2)) % 2);
+    function next(message = '') {
+      const attacking = cues[attempts] === 1;
+      view.replaceChildren(element('span', attacking ? '🤖 💥' : '🤖 ⚡', 'game-symbol'));
+      status([message, attacking ? '對手出拳了！' : '對手露出破綻！'].filter(Boolean).join(' '));
+      updateScore(hits, attempts, 5);
+      buttons([['出拳', () => answer(!attacking)], ['防禦', () => answer(attacking)]]);
+    }
+    function answer(hit) {
+      hits += Number(hit);
+      attempts++;
+      if (attempts === 5) return finish('招式成功 ' + hits + '／5');
+      next(hit ? '漂亮！' : '這招沒奏效。');
+    }
+    next();
+  }
+
+  function memoryGame({ view, buttons, status, updateScore, finish, later }) {
+    const colors = ['粉', '黃', '綠', '紫'];
+    const icons = ['🩷', '💛', '💚', '💜'];
+    let hits = 0;
+    let attempts = 0;
+    function ready(message = '準備記住顏色！') {
+      status(message);
+      view.replaceChildren();
+      updateScore(hits, attempts, 3);
+      buttons([['顯示順序', show]]);
+    }
+    function show() {
+      const sequence = Array.from({ length: attempts + 2 }, () => pick(colors.length));
+      let index = 0;
+      view.replaceChildren(element('span', sequence.map(color => icons[color]).join(' '), 'game-symbol'));
+      status(sequence.map(color => colors[color]).join('、'));
+      buttons([]);
+      later(() => {
+        view.replaceChildren();
+        status('照順序按下顏色。');
+        buttons(colors.map((color, value) => [icons[value] + ' ' + color, () => {
+          if (sequence[index] !== value) return resolve(false);
+          index++;
+          if (index === sequence.length) return resolve(true);
+          status('已輸入 ' + index + '／' + sequence.length);
+        }]));
+      }, 1600 + attempts * 450);
+    }
+    function resolve(hit) {
+      hits += Number(hit);
+      attempts++;
+      if (attempts === 3) return finish('記對 ' + hits + '／3 組');
+      ready(hit ? '記對了！' : '這組順序不同。');
+    }
+    ready();
+  }
+
+  function showLanes(view, symbols, labels) {
+    const lanes = element('div', null, 'game-lanes');
+    symbols.forEach((symbol, index) => {
+      const lane = element('span', symbol);
+      lane.setAttribute('aria-label', labels[index]);
+      lanes.append(lane);
+    });
+    view.replaceChildren(lanes);
+  }
+
+  function dodgeGame({ view, buttons, status, updateScore, finish }) {
+    const directions = ['左', '中', '右'];
+    let hits = 0;
+    let attempts = 0;
+    function next(message = '') {
+      const safe = pick(3);
+      const labels = directions.map((direction, index) => direction + (index === safe ? '空' : '有隕石'));
+      showLanes(view, directions.map((_, index) => index === safe ? '·' : '☄️'), labels);
+      status(message + '選一條空航道。');
+      updateScore(hits, attempts, 5);
+      buttons(directions.map((direction, index) => [direction, () => {
+        const hit = index === safe;
+        hits += Number(hit);
+        attempts++;
+        if (attempts === 5) return finish('安全通過 ' + hits + '／5');
+        next(hit ? '安全通過！' : '撞到隕石了。');
+      }]));
+    }
+    next();
+  }
+
+  function shooterGame({ view, buttons, status, updateScore, finish, later }) {
+    const directions = ['左', '中', '右'];
+    let target = pick(3);
+    let attempts = 0;
+    let hits = 0;
+    function move() {
+      const labels = directions.map((direction, index) => direction + (index === target ? '有外星人' : '空'));
+      showLanes(view, directions.map((_, index) => index === target ? '👾' : '·'), labels);
+      later(() => { target = (target + 1) % directions.length; move(); }, 725);
+    }
+    status('看準外星人所在的軌道。');
+    updateScore(hits, attempts, 3);
+    move();
+    buttons(directions.map((direction, index) => [direction + '側開火', () => {
+      const hit = target === index;
+      attempts++;
+      hits += Number(hit);
+      if (attempts === 3) return finish('命中 ' + hits + '／3');
+      status(hit ? '命中了！' : '打空了！');
+      updateScore(hits, attempts, 3);
+    }]));
+  }
+
+  get('roll').onclick = () => {
+    if (get('roll').disabled) return;
+    const face = pick(games.length) + 1;
+    state.arcade.spent++;
+    state.arcade.round = { face, finished: false };
+    render();
+    openGame();
   };
 
+  get('draw').onclick = drawCard;
+  get('cancel').onclick = () => get('dialog').close();
   get('use').onclick = () => {
     const card = cards.find(entry => entry.kind === state.card?.kind);
     if (!card || state.used) return;
@@ -415,9 +663,10 @@ dialog textarea { min-height: 170px; width: 100%; }
   };
 
   get('reset').onclick = () => {
-    openDialog('重開一局', [element('p', '清除這個瀏覽器的進度，並回到 11/20 的初始行程。')], () => {
+    openDialog('重開一局', [element('p', '清除這個瀏覽器的進度，包含任務、卡片和擲骰獎勵，並回到 11/20 的初始行程。')], () => {
       state = newGame();
-      get('die').textContent = '🎲';
+      stopGame();
+      get('game-slot').replaceChildren();
     }, '重開一局');
   };
 
@@ -440,6 +689,7 @@ dialog textarea { min-height: 170px; width: 100%; }
   };
 
   render();
+  openGame();
 })();
 </script>
 </body>
