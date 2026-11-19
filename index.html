@@ -1,5 +1,419 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ciao Monopoly｜命運行程大富翁</title><style>
-:root{--ink:#28213e;--purple:#5d3ca2;--gold:#e7b95e;--cream:#fff8e9;--line:#d9c8aa}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0%,#6a4c9a,#21172f 75%);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}main{max-width:980px;margin:auto;padding:16px 12px 48px}.hero{text-align:center;color:#fff;padding:12px 0 20px}.eyebrow{letter-spacing:4px;font-size:11px;color:#e7c994}.hero h1{font-family:Georgia,serif;font-size:clamp(29px,6vw,51px);margin:4px 0;color:#ffe3a3;text-shadow:0 3px 0 #352246}.hero p{margin:4px;color:#eee0ff;font-size:13px}.stats{display:flex;gap:8px;margin:0 0 14px}.stat{flex:1;background:#fff6e4;border:2px solid #d9b77d;border-radius:12px;text-align:center;padding:9px 3px;box-shadow:0 4px 0 #342448}.stat strong{display:block;font-size:22px}.stat small{font-size:11px}.panel{background:#fff9ed;border:3px solid #e5c68e;border-radius:16px;padding:14px;margin-top:14px;box-shadow:0 6px 0 #271b3a}.board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(5,minmax(69px,1fr));aspect-ratio:1;gap:3px;background:#65498a;border:8px solid #b98951;border-radius:12px;padding:4px;box-shadow:inset 0 0 0 3px #f7dfaa,0 10px 22px #140b2599}.tile{position:relative;min-width:0;border:2px solid #382c4e;background:#fff8e7;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3px 2px;cursor:pointer;border-radius:3px;overflow:hidden}.tile .band{position:absolute;top:0;left:0;right:0;height:9px;background:var(--band,#bb9edb);border-bottom:1px solid #443358}.tile .emoji{font-size:clamp(17px,3.2vw,29px);margin-top:7px}.tile .name{font-size:clamp(9px,1.6vw,12px);font-weight:800;line-height:1.2;overflow-wrap:anywhere}.tile .time{font-size:clamp(7px,1.2vw,10px);color:#76667d}.tile.done{background:#d4f2df}.tile.skip{background:#f9dce0}.tile.current{outline:3px solid #f6c14d;outline-offset:-4px;z-index:1}.pawn{position:absolute;right:1px;bottom:0;font-size:clamp(15px,3vw,26px);filter:drop-shadow(1px 2px 1px #0008);animation:bob 1s ease-in-out infinite alternate}@keyframes bob{to{transform:translateY(-4px)}}.center{grid-area:2/2/5/5;background:repeating-linear-gradient(135deg,#f9e5b9,#f9e5b9 12px,#f7dfaa 12px,#f7dfaa 24px);border:3px solid #c48b50;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:8px}.center h2{font:900 clamp(16px,3.7vw,34px) Georgia,serif;color:#553580;margin:4px 0}.center .dice{font-size:clamp(34px,7vw,60px)}.center p{font-size:clamp(10px,1.7vw,14px);margin:4px 0}.btn{background:#efe0c5;border:2px solid #9f7954;border-radius:10px;padding:10px 14px;font-weight:800;color:#382648;cursor:pointer;box-shadow:0 3px 0 #9f7954}.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #9f7954}.btn.primary{background:#6340a7;border-color:#3b246c;color:white;box-shadow:0 3px 0 #3b246c}.btn.gold{background:#f3c866;border-color:#ac7830}.btn:disabled{opacity:.45;cursor:not-allowed}.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}.actions>*{flex:1;min-width:130px}.sectiontitle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px;font-weight:900}.deck{background:linear-gradient(135deg,#26143e,#55338d);color:#fff3ce;border:4px double #f1c477;border-radius:14px;padding:18px;text-align:center;min-height:178px;display:flex;flex-direction:column;justify-content:center;gap:8px;box-shadow:inset 0 0 0 5px #342054}.deck .big{font-size:40px}.deck strong{font-size:21px}.deck small{color:#e6d7fa}.taskrow{display:flex;gap:9px;align-items:center;padding:10px 2px;border-bottom:1px dashed #cbb896}.taskrow:last-child{border-bottom:0}.taskrow .desc{flex:1;min-width:0}.taskrow .desc small{display:block;color:#756783}.taskrow select{max-width:110px;padding:7px 3px;background:#fff;border:1px solid #c5b092;border-radius:8px;color:#382648}.note{font-size:12px;color:#6d5b79;line-height:1.65}.modal{position:fixed;inset:0;background:#100a1ecb;display:none;align-items:center;justify-content:center;padding:15px;z-index:9}.modal.show{display:flex}.dialog{background:#fff9ed;border:4px solid #d5a75e;border-radius:18px;padding:20px;width:min(420px,100%);max-height:85vh;overflow:auto}.dialog h3{margin:0 0 12px}.dialog label{display:block;font-size:13px;margin:10px 0 4px}.dialog select,.dialog input{display:block;width:100%;padding:10px;border:1px solid #bca98c;border-radius:8px;background:white;color:#302540}.dialog .buttons{display:flex;gap:8px;margin-top:16px}.dialog .buttons button{flex:1}.toast{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);background:#2d2149;color:white;padding:12px 18px;border-radius:12px;z-index:10;max-width:90%;display:none;text-align:center}.legend{font-size:12px;color:#eee0ff;text-align:center;margin-top:10px}@media(max-width:500px){main{padding:10px 7px 30px}.board{border-width:5px;gap:2px;grid-template-rows:repeat(5,minmax(60px,1fr))}.tile{border-width:1px}.tile .band{height:7px}.tile .time{font-size:7px}.panel{padding:10px}.stat strong{font-size:19px}.hero{padding-top:6px}}
-</style></head><body><main><header class="hero"><div class="eyebrow">CIAO UNIVERSITY · DAILY QUEST</div><h1>🎩 CIAO MONOPOLY</h1><p>命運行程大富翁｜把叛逆變成可控的機會卡</p></header><div class="stats"><div class="stat"><small>今日 KPI</small><strong id="kpi">0%</strong></div><div class="stat"><small>完成任務</small><strong id="progress">0/8</strong></div><div class="stat"><small>機會卡</small><strong id="pass">1 張</strong></div></div><div class="board" id="board"><div class="center"><div class="dice" id="die">🎲</div><h2>CIAO<br>MONOPOLY</h2><p id="turn">準備出發！</p><button class="btn gold" id="roll">🎲 擲骰子</button></div></div><div class="legend">🎩 點任務格可更新狀態｜擲骰子移動棋子｜落在命運格可抽牌</div><div class="actions"><button class="btn primary" id="draw">🃏 抽機會卡</button><button class="btn" id="use" disabled>😈 使用卡片</button></div><section class="panel"><div class="sectiontitle">🃏 命運機會卡 <span id="cardstatus" style="font-size:12px;font-weight:400">尚未抽取</span></div><div class="deck" id="card"><span class="big">❔</span><strong>REBELLION CARD</strong><small>規則是你的，你有權選擇改道。</small></div><p class="note" style="margin-bottom:0">每天一張卡：交換、延後、自由或免責。原定 KPI 不會因為抽卡而被偷偷改寫。</p></section><section class="panel"><div class="sectiontitle">📋 今日任務 <button class="btn" id="add">＋ 新增</button></div><div id="tasks"></div></section><div class="actions"><button class="btn primary" id="report">📋 複製戰績</button><button class="btn" id="reset">↺ 重開一局</button></div><p class="legend">示範行程：11/20 · 自動儲存在目前瀏覽器內 · 尚未同步 Google Sheets</p></main><div class="modal" id="modal"><div class="dialog"><h3 id="modalTitle"></h3><div id="modalBody"></div><div class="buttons"><button class="btn" id="cancel">取消</button><button class="btn primary" id="confirm">確認</button></div></div></div><div class="toast" id="toast"></div><script>
-(()=>{const $=id=>document.getElementById(id);const initial=[['💜','志工','08:00–15:30',true],['👾','n8n 第一輪','16:30–18:00'],['📞','聯絡媽媽','18:30–19:00'],['💰','記帳','19:00–19:30'],['👾','n8n 第二輪','19:30–21:00'],['💃','跳舞','21:00–21:30'],['📊','今日復盤','21:30–21:45'],['📅','明日計畫','21:45–22:00']].map(([emoji,name,time,fixed])=>({emoji,name,time,fixed:!!fixed,status:'todo'}));const cards=[{emoji:'🔀',name:'交換卡',text:'交換兩個非固定任務的時段。',kind:'swap'},{emoji:'⏳',name:'延遲卡',text:'將一個非固定任務延後 30 分鐘；請自行調整相鄰行程。',kind:'delay'},{emoji:'💗',name:'自由卡',text:'獲得 30 分鐘自由時間，請自行調整非固定任務。',kind:'free'},{emoji:'😈',name:'免責卡',text:'允許取消一項非必要任務；KPI 仍如實計算。',kind:'skip'}];let state;try{state=JSON.parse(localStorage.getItem('ciao-monopoly-v2'))}catch(e){}if(!state||!Array.isArray(state.tasks))state={tasks:structuredClone(initial),position:0,card:null,used:false,rolls:0};const save=()=>{try{localStorage.setItem('ciao-monopoly-v2',JSON.stringify(state))}catch(e){}};function toast(msg){$('toast').textContent=msg;$('toast').style.display='block';clearTimeout(window._toast);window._toast=setTimeout(()=>$('toast').style.display='none',2600)};function modal(title,build,action){$('modalTitle').textContent=title;$('modalBody').innerHTML='';build($('modalBody'));$('modal').classList.add('show');$('confirm').onclick=()=>{if(action($('modalBody'))!==false){$('modal').classList.remove('show');render()}}};$('cancel').onclick=()=>$('modal').classList.remove('show');function selector(container,label,except){const lab=document.createElement('label');lab.textContent=label;container.append(lab);const s=document.createElement('select');state.tasks.forEach((t,i)=>{if(!t.fixed&&i!==except){let o=document.createElement('option');o.value=i;o.textContent=`${t.emoji} ${t.name} (${t.time})`;s.append(o)}});container.append(s);return s};const path=[[5,5],[5,4],[5,3],[5,2],[5,1],[4,1],[3,1],[2,1],[1,1],[1,2],[1,3],[1,4],[1,5],[2,5],[3,5],[4,5]];const special={0:['🏁','起點','#efc75b'],4:['🃏','命運','#cf9be7'],8:['🎁','獎勵','#9bd5c5'],12:['🃏','機會','#cf9be7']};function render(){save();let done=state.tasks.filter(t=>t.status==='done').length;$('kpi').textContent=state.tasks.length?Math.round(done/state.tasks.length*100)+'%':'—';$('progress').textContent=done+'/'+state.tasks.length;$('pass').textContent=state.used?'0 張':'1 張';$('draw').disabled=!!state.card||state.used;$('use').disabled=!state.card||state.used;$('cardstatus').textContent=state.used?'今日已使用':state.card?'已抽牌，可使用':'尚未抽取';$('card').innerHTML=state.card?`<span class="big">${state.card.emoji}</span><strong>${state.card.name}</strong><small>${state.card.text}</small>`:'<span class="big">❔</span><strong>REBELLION CARD</strong><small>規則是你的，你有權選擇改道。</small>';$('turn').textContent=`第 ${state.rolls} 次擲骰 · 棋子位置 ${state.position+1}`;document.querySelectorAll('.tile').forEach(x=>x.remove());path.forEach(([r,c],i)=>{let t=state.tasks[i-1],sp=special[i];let b=document.createElement('button');b.className='tile'+(t?.status==='done'?' done':t?.status==='skip'?' skip':'')+(state.position===i?' current':'');b.style.gridRow=r;b.style.gridColumn=c;b.style.setProperty('--band',sp?sp[2]:['#e4a8bc','#a2c5e9','#b5dbaf','#d6b3ed'][i%4]);let e=sp?sp[0]:t?t.emoji:'⭐',name=sp?sp[1]:t?t.name:'自由格',time=t?(t.status==='done'?'✓ 完成':t.status==='skip'?'已取消':t.time):'';b.innerHTML=`<div class="band"></div><span class="emoji">${e}</span><span class="name"></span><span class="time"></span>${state.position===i?'<span class="pawn">🎩</span>':''}`;b.querySelector('.name').textContent=name;b.querySelector('.time').textContent=time;b.onclick=()=>{if(t)editTask(i-1);else if(sp&&(i===4||i===12)&&!state.card&&!state.used)drawCard();else toast('🎲 這是 '+(sp?sp[1]:'自由')+' 格')};$('board').append(b)});$('tasks').innerHTML='';state.tasks.forEach((t,i)=>{let row=document.createElement('div');row.className='taskrow';let emoji=document.createElement('span');emoji.textContent=t.emoji;let desc=document.createElement('div');desc.className='desc';let name=document.createElement('b');name.textContent=t.name;let time=document.createElement('small');time.textContent=t.time+(t.fixed?' · 固定行程':'');desc.append(name,time);let s=document.createElement('select');[['todo','待執行'],['done','✓ 完成'],['skip','未完成']].forEach(([v,n])=>{let o=document.createElement('option');o.value=v;o.textContent=n;s.append(o)});s.value=t.status;s.onchange=()=>{t.status=s.value;render()};row.append(emoji,desc,s);$('tasks').append(row)})};function editTask(i){let t=state.tasks[i];modal('📍 '+t.name,b=>{let p=document.createElement('p');p.textContent='原定：'+t.time;b.append(p);let s=document.createElement('select');s.id='taskStatus';[['todo','待執行'],['done','✓ 已完成'],['skip','未完成']].forEach(([v,n])=>{let o=document.createElement('option');o.value=v;o.textContent=n;s.append(o)});s.value=t.status;b.append(s)},b=>{t.status=b.querySelector('select').value})};function drawCard(){if(state.used||state.card)return;state.card=cards[Math.floor(Math.random()*cards.length)];toast('✨ 抽到 '+state.card.name+'！');render()};$('draw').onclick=drawCard;$('roll').onclick=()=>{let n=1+Math.floor(Math.random()*6);state.position=(state.position+n)%16;state.rolls++;$('die').textContent=['','⚀','⚁','⚂','⚃','⚄','⚅'][n];render();if([4,12].includes(state.position)&&!state.card&&!state.used){drawCard();toast('🎲 擲出 '+n+' 點，走到機會格！')}else toast('🎲 擲出 '+n+' 點！')};$('use').onclick=()=>{let card=state.card;if(!card||state.used)return;if(card.kind==='free'){modal('💗 自由卡',b=>{b.textContent='今天可以享受 30 分鐘自由時間。請自行安排，不必強迫自己產生特定情緒。'},()=>{state.used=true;toast('自由卡已使用！')});return}modal(card.emoji+' '+card.name,b=>{if(card.kind==='swap'){let a=selector(b,'第一項任務');a.id='first';let d=selector(b,'第二項任務');d.id='second'}else{let a=selector(b,'選擇非固定任務');a.id='first'}let p=document.createElement('p');p.className='note';p.textContent=card.text;b.append(p)},b=>{let a=Number(b.querySelector('#first')?.value),d=Number(b.querySelector('#second')?.value);if(!Number.isInteger(a)||!state.tasks[a])return false;if(card.kind==='swap'){if(a===d){toast('請選擇不同任務');return false}let tmp=state.tasks[a].time;state.tasks[a].time=state.tasks[d].time;state.tasks[d].time=tmp}else if(card.kind==='delay'){state.tasks[a].time+=' · 延後30分（待調整）'}else if(card.kind==='skip'){state.tasks[a].status='skip'}state.used=true;toast('😈 '+card.name+' 已生效！')})};$('add').onclick=()=>modal('＋ 新增任務',b=>{b.innerHTML='<label>任務名稱</label><input id="newName" placeholder="例：閱讀心理學"><label>時間</label><input id="newTime" placeholder="例：20:00–20:30">'},b=>{let name=b.querySelector('#newName').value.trim();if(!name){toast('請輸入名稱');return false}state.tasks.push({emoji:'⭐',name,time:b.querySelector('#newTime').value.trim()||'自由安排',status:'todo',fixed:false});toast('任務已新增！')});$('reset').onclick=()=>modal('↺ 重開一局',b=>{b.textContent='將清除這個瀏覽器儲存的遊戲進度，回到示範行程。確定嗎？'},()=>{state={tasks:structuredClone(initial),position:0,card:null,used:false,rolls:0};$('die').textContent='🎲';toast('新的一局開始！')});$('report').onclick=async()=>{let msg=`🎲 Ciao Monopoly 今日戰績\nKPI：${state.tasks.filter(t=>t.status==='done').length}/${state.tasks.length}\n`+state.tasks.map(t=>`${t.emoji} ${t.name}｜${t.status==='done'?'完成':t.status==='skip'?'未完成':'待執行'}｜${t.time}`).join('\n')+`\n機會卡：${state.card?.name||'未抽'}｜${state.used?'已使用':'未使用'}`;try{await navigator.clipboard.writeText(msg);toast('📋 戰績已複製！')}catch(e){modal('今日戰績',b=>{let x=document.createElement('textarea');x.style='width:100%;height:240px';x.value=msg;b.append(x)},()=>{})}};render()})();
-</script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#201e34">
+<title>Ciao Monopoly｜Rebellion Time</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #201e34;
+  --muted: #5e5573;
+  --paper: #fff8e7;
+  --lavender: #ded2ff;
+  --pink: #ff88ae;
+  --yellow: #ffdb61;
+  --mint: #bde5cd;
+  --edge: 3px solid var(--ink);
+  font-family: ui-rounded, system-ui, "PingFang TC", "Microsoft JhengHei", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: #e8dcfa; background-image: radial-gradient(#72589e45 1px, transparent 1px); background-size: 16px 16px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; touch-action: manipulation; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 3px solid #6743ec; outline-offset: 4px; }
+main { width: min(100% - 28px, 920px); margin: 26px auto 48px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 800 .8rem ui-monospace, monospace; letter-spacing: .04em; padding: 0 3px 12px; }
+.brand { display: flex; gap: 8px; align-items: center; }
+.mark { width: 12px; height: 12px; background: var(--pink); border: 2px solid var(--ink); box-shadow: 2px 2px var(--ink); transform: rotate(45deg); }
+.console { border: var(--edge); background: var(--ink); border-radius: 24px 24px 32px 24px; padding: 10px; box-shadow: 5px 6px #8872aa; }
+.screen { position: relative; isolation: isolate; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) minmax(230px, .69fr); gap: 20px; align-items: center; border-radius: 12px; padding: clamp(18px, 4vw, 38px); background: #302546; color: var(--paper); }
+.screen::before { content: ""; position: absolute; inset: 0; z-index: -1; background: repeating-linear-gradient(0deg, #ffffff0c 0 1px, transparent 1px 5px); pointer-events: none; }
+.screen h1 { margin: 8px 0 12px; font: 1000 clamp(2.5rem, 8vw, 5.25rem)/.94 ui-monospace, monospace; letter-spacing: -.09em; color: var(--yellow); text-shadow: 3px 4px #7d335b; }
+.screen h1 span { color: var(--pink); }
+.screen p { margin: 0; line-height: 1.55; }
+.screen-label { font: 800 .75rem ui-monospace, monospace; letter-spacing: .08em; color: #e7d6fa; }
+.card-slot { background: var(--paper); color: var(--ink); border: 3px solid #161326; border-radius: 12px; padding: 14px; box-shadow: 4px 4px #141122; }
+.card { min-height: 125px; margin-bottom: 13px; display: grid; place-content: center; justify-items: center; gap: 5px; text-align: center; padding: 12px; border: 2px dashed var(--ink); background: var(--lavender); border-radius: 8px; }
+.card[data-drawn="true"] { background: var(--mint); }
+.card-icon { font-size: 1.85rem; line-height: 1; }
+.card strong { font-size: 1.1rem; }
+.card small { color: var(--muted); font-size: .85rem; line-height: 1.4; }
+.card-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.status { margin-top: 10px !important; color: var(--muted); font-size: .82rem; text-align: center; }
+.btn { border: 2px solid var(--ink); border-radius: 8px; background: var(--paper); padding: 8px 11px; min-height: 42px; font-weight: 850; box-shadow: 2px 3px var(--ink); }
+.btn:hover:enabled { background: var(--lavender); }
+.btn:active:enabled { transform: translate(2px, 3px); box-shadow: none; }
+.btn:disabled { opacity: .55; box-shadow: none; }
+.pink { background: var(--pink); }
+.yellow { background: var(--yellow); }
+.mint { background: var(--mint); }
+.lower { display: grid; grid-template-columns: minmax(0, 1.16fr) minmax(280px, 1fr); gap: 16px; align-items: start; margin-top: 22px; }
+.panel { min-width: 0; border: var(--edge); border-radius: 14px; background: var(--paper); box-shadow: 4px 4px var(--ink); overflow: hidden; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 11px 13px; background: var(--lavender); border-bottom: var(--edge); }
+.panel-head h2 { font-size: 1.14rem; margin: 0; }
+.counter { font: 800 .88rem ui-monospace, monospace; border: 2px solid var(--ink); padding: 4px 7px; border-radius: 5px; background: var(--yellow); }
+.board-wrap { padding: 10px; }
+.board { position: relative; display: grid; grid-template: repeat(5, minmax(60px, 1fr)) / repeat(5, minmax(0, 1fr)); gap: 4px; }
+.center { display: grid; place-content: center; justify-items: center; gap: 6px; padding: 8px; text-align: center; grid-area: 2 / 2 / 5 / 5; background: #e7d8f8; border: 2px solid var(--ink); border-radius: 9px; }
+.dice { font-size: 2.2rem; line-height: 1; }
+.turn { margin: 0; font-size: .78rem; color: var(--muted); }
+.tile { min-width: 0; position: relative; display: grid; place-content: center; justify-items: center; gap: 2px; min-height: 60px; background: var(--tile, #fffdf4); border: 2px solid var(--ink); border-radius: 5px; padding: 4px 1px; line-height: 1.15; }
+.tile:disabled { opacity: 1; }
+.tile:hover:enabled { background: var(--lavender); }
+.tile.current { box-shadow: inset 0 0 0 2px #7554e5; }
+.tile.done { background: var(--mint); }
+.tile.skip { background: #eee7e9; }
+.tile-label { font-size: .68rem; font-weight: 800; overflow-wrap: anywhere; }
+.pawn { position: absolute; right: 1px; top: 0; font-size: .76rem; }
+.tasks { display: grid; padding: 3px 12px; }
+.task { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 7px; padding: 8px 0; border-bottom: 1px solid #d8c7df; }
+.task:last-child { border-bottom: 0; }
+.task small { display: block; font-size: .77rem; color: var(--muted); margin-top: 2px; }
+.task select, dialog select, dialog input, dialog textarea { min-height: 40px; border: 2px solid var(--ink); border-radius: 6px; background: #fffdf5; padding: 4px 6px; }
+.task select { font-size: .82rem; max-width: 104px; }
+.footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 9px 12px 13px; }
+.footer .btn { font-size: .84rem; }
+dialog { color: var(--ink); width: min(420px, calc(100% - 28px)); border: var(--edge); border-radius: 12px; background: var(--paper); box-shadow: 4px 5px var(--ink); padding: 19px; }
+dialog::backdrop { background: #201e34a8; }
+dialog h2 { margin: 0 0 12px; font-size: 1.2rem; }
+dialog form { display: grid; gap: 12px; }
+dialog label { display: grid; gap: 4px; font-weight: 750; }
+dialog p { margin: 0; }
+.dialog-error { color: #9c1845; font-weight: 750; }
+.dialog-error:empty { display: none; }
+dialog textarea { min-height: 170px; width: 100%; }
+.toast { position: fixed; z-index: 1; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink); color: white; border-radius: 7px; padding: 9px 12px; text-align: center; width: max-content; max-width: calc(100% - 22px); margin: 0; }
+.toast:empty { display: none; }
+@media (max-width: 700px) { .lower { grid-template-columns: 1fr; } }
+@media (max-width: 530px) {
+  main { margin-top: 16px; }
+  .screen { grid-template-columns: 1fr; gap: 15px; }
+  .screen h1 { font-size: clamp(2.6rem, 12vw, 3.8rem); }
+  .card { min-height: 91px; }
+  .card-slot { padding: 10px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="top"><span class="brand"><span class="mark" aria-hidden="true"></span>CIAO MONOPOLY</span><span>11/20 行程</span></header>
+  <section class="console" aria-labelledby="rebellion-title">
+    <div class="screen">
+      <div>
+        <div class="screen-label">CIAO UNIVERSITY</div>
+        <h1 id="rebellion-title">REBELLION<br><span>TIME</span></h1>
+        <p>今天想怎麼改道？先抽一張卡，再決定要不要用。</p>
+      </div>
+      <div class="card-slot">
+        <div class="card" id="card" data-drawn="false" aria-live="polite">
+          <span class="card-icon" id="card-icon" aria-hidden="true">✦</span>
+          <strong id="card-name">今日改道卡</strong>
+          <small id="card-text">交換時段、延後、自由時間或跳過任務。</small>
+        </div>
+        <div class="card-controls">
+          <button class="btn pink" id="draw">抽一張卡</button>
+          <button class="btn yellow" id="use" disabled>使用卡片</button>
+        </div>
+        <p class="status" id="card-status">本局可抽 1 張</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-labelledby="board-title">
+      <header class="panel-head"><h2 id="board-title">🎲 行程棋盤</h2></header>
+      <div class="board-wrap">
+        <div class="board" id="board">
+          <div class="center">
+            <span class="dice" id="die" aria-hidden="true">🎲</span>
+            <button class="btn yellow" id="roll">擲骰子</button>
+            <p class="turn" id="turn" aria-live="polite">準備出發</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="task-title">
+      <header class="panel-head"><h2 id="task-title">🗓️ 今日任務</h2><span class="counter" id="progress"></span></header>
+      <div class="tasks" id="tasks"></div>
+      <div class="footer">
+        <button class="btn mint" id="add">新增任務</button>
+        <button class="btn" id="report">複製戰績</button>
+        <button class="btn" id="reset">重開一局</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<dialog id="dialog" aria-labelledby="dialog-title">
+  <form id="dialog-form">
+    <h2 id="dialog-title"></h2>
+    <div id="dialog-fields"></div>
+    <p class="dialog-error" id="dialog-error" role="alert"></p>
+    <div class="card-controls">
+      <button type="button" class="btn" id="cancel">取消</button>
+      <button type="submit" class="btn yellow" id="confirm">確認</button>
+    </div>
+  </form>
+</dialog>
+<p id="toast" class="toast" role="status"></p>
+<script>
+(() => {
+  const get = id => document.getElementById(id);
+  const storageKey = 'ciao-monopoly-v2';
+  const schedule = [
+    ['💜', '志工', '08:00–15:30', true],
+    ['👾', 'n8n 第一輪', '16:30–18:00'],
+    ['📞', '聯絡媽媽', '18:30–19:00'],
+    ['💰', '記帳', '19:00–19:30'],
+    ['👾', 'n8n 第二輪', '19:30–21:00'],
+    ['💃', '跳舞', '21:00–21:30'],
+    ['📊', '今日復盤', '21:30–21:45'],
+    ['📅', '明日計畫', '21:45–22:00'],
+  ];
+  const cards = [
+    { emoji: '🔀', name: '交換卡', text: '交換兩個非固定任務的時段。', kind: 'swap' },
+    { emoji: '⏳', name: '延遲卡', text: '將一個非固定任務標記為延後 30 分鐘。', kind: 'delay' },
+    { emoji: '💗', name: '自由卡', text: '留 30 分鐘給自己，自由安排。', kind: 'free' },
+    { emoji: '😈', name: '免責卡', text: '跳過一項非固定任務。完成率照實記錄。', kind: 'skip' },
+  ];
+  const path = [[5,5],[5,4],[5,3],[5,2],[5,1],[4,1],[3,1],[2,1],[1,1],[1,2],[1,3],[1,4],[1,5],[2,5],[3,5],[4,5]];
+  const special = {
+    0: ['🏁', '起點', '#ffdb61'],
+    4: ['✦', '命運', '#ff88ae'],
+    8: ['🎁', '獎勵', '#bde5cd'],
+    12: ['✦', '機會', '#ff88ae'],
+  };
+  const statuses = [['todo', '待執行'], ['done', '✓ 完成'], ['skip', '未完成']];
+  const newGame = () => ({
+    tasks: schedule.map(([emoji, name, time, fixed]) => ({ emoji, name, time, fixed: Boolean(fixed), status: 'todo' })),
+    position: 0, card: null, used: false, rolls: 0,
+  });
+  let state = newGame();
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey));
+    if (Array.isArray(saved?.tasks)) state = saved;
+  } catch {}
+  let toastTimer;
+
+  function element(tag, text, className) {
+    const node = document.createElement(tag);
+    if (text) node.textContent = text;
+    if (className) node.className = className;
+    return node;
+  }
+
+  function toast(message) {
+    get('toast').textContent = message;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { get('toast').textContent = ''; }, 2800);
+  }
+
+  function selectFor(entries, selected) {
+    const select = element('select');
+    for (const [value, label] of entries) {
+      const option = element('option', label);
+      option.value = value;
+      select.append(option);
+    }
+    if (selected !== undefined) select.value = selected;
+    return select;
+  }
+
+  function labeled(label, control) {
+    const wrapper = element('label', label);
+    wrapper.append(control);
+    return wrapper;
+  }
+
+  function openDialog(title, fields, apply, confirmText = '確認') {
+    const dialog = get('dialog');
+    get('dialog-title').textContent = title;
+    get('dialog-fields').replaceChildren(...fields);
+    get('confirm').textContent = confirmText;
+    get('dialog-error').textContent = '';
+    get('dialog-form').onsubmit = event => {
+      event.preventDefault();
+      if (apply() === false) return;
+      dialog.close();
+      render();
+    };
+    dialog.showModal();
+  }
+
+  function drawCard() {
+    if (state.card || state.used) return;
+    state.card = cards[Math.floor(Math.random() * cards.length)];
+    render();
+    toast('抽到「' + state.card.name + '」');
+  }
+
+  function renderBoard() {
+    const board = get('board');
+    board.querySelectorAll('.tile').forEach(tile => tile.remove());
+    const taskSlots = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15];
+    path.forEach(([row, column], position) => {
+      const task = state.tasks[taskSlots.indexOf(position)];
+      const space = special[position];
+      const [emoji, name, color] = space ?? [task?.emoji ?? '·', task?.name ?? '空格', '#fffdf4'];
+      const tile = element('button', null, 'tile');
+      tile.style.gridRow = row;
+      tile.style.gridColumn = column;
+      tile.style.setProperty('--tile', color);
+      tile.append(element('span', emoji), element('span', name, 'tile-label'));
+      if (task?.status !== 'todo' && task) tile.classList.add(task.status);
+      if (position === state.position) {
+        tile.classList.add('current');
+        tile.append(element('span', '🎩', 'pawn'));
+        tile.setAttribute('aria-current', 'location');
+      }
+      if (task) {
+        tile.title = task.time;
+        tile.onclick = () => {
+          const select = selectFor(statuses, task.status);
+          openDialog(task.name, [element('p', task.time), labeled('任務狀態', select)], () => { task.status = select.value; });
+        };
+      } else if ([4, 12].includes(position) && !state.card && !state.used) {
+        tile.onclick = drawCard;
+      } else {
+        tile.disabled = true;
+      }
+      board.append(tile);
+    });
+  }
+
+  function renderTasks() {
+    const tasks = get('tasks');
+    tasks.replaceChildren();
+    for (const task of state.tasks) {
+      const row = element('div', null, 'task');
+      const description = element('div');
+      description.append(element('strong', task.name), element('small', task.time + (task.fixed ? ' · 固定' : '')));
+      const select = selectFor(statuses, task.status);
+      select.setAttribute('aria-label', task.name + '狀態');
+      select.onchange = () => { task.status = select.value; render(); };
+      row.append(element('span', task.emoji), description, select);
+      tasks.append(row);
+    }
+  }
+
+  function render() {
+    const card = cards.find(entry => entry.kind === state.card?.kind) ?? state.card;
+    const done = state.tasks.filter(task => task.status === 'done').length;
+    const percent = state.tasks.length ? Math.round(done / state.tasks.length * 100) : 0;
+    get('progress').textContent = done + '/' + state.tasks.length + ' · ' + percent + '%';
+    get('draw').disabled = Boolean(card) || state.used;
+    get('use').disabled = !card || state.used;
+    get('card').dataset.drawn = Boolean(card);
+    get('card-icon').textContent = card?.emoji ?? '✦';
+    get('card-name').textContent = card?.name ?? '今日改道卡';
+    get('card-text').textContent = card?.text ?? '交換時段、延後、自由時間或跳過任務。';
+    get('card-status').textContent = state.used ? '本局已使用' : card ? '已抽牌，可使用' : '本局可抽 1 張';
+    get('turn').textContent = state.rolls ? '第 ' + state.rolls + ' 次擲骰 · 第 ' + (state.position + 1) + ' 格' : '準備出發';
+    renderBoard();
+    renderTasks();
+    try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch {}
+  }
+
+  get('draw').onclick = drawCard;
+  get('cancel').onclick = () => get('dialog').close();
+  get('roll').onclick = () => {
+    const roll = 1 + Math.floor(Math.random() * 6);
+    state.position = (state.position + roll) % path.length;
+    state.rolls++;
+    get('die').textContent = ['🎲', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'][roll];
+    if ([4, 12].includes(state.position) && !state.card && !state.used) drawCard();
+    else {
+      render();
+      toast('擲出 ' + roll + ' 點');
+    }
+  };
+
+  get('use').onclick = () => {
+    const card = cards.find(entry => entry.kind === state.card?.kind);
+    if (!card || state.used) return;
+    const apply = () => {
+      state.used = true;
+      toast('已使用「' + card.name + '」');
+    };
+    if (card.kind === 'free') {
+      openDialog(card.name, [element('p', card.text)], apply, '使用卡片');
+      return;
+    }
+    const eligible = state.tasks.flatMap((task, index) => task.fixed ? [] : [[index, task.name + ' · ' + task.time]]);
+    if (eligible.length < (card.kind === 'swap' ? 2 : 1)) {
+      toast('目前沒有足夠的非固定任務可使用這張卡。');
+      return;
+    }
+    const first = selectFor(eligible);
+    const fields = [labeled(card.kind === 'swap' ? '第一項任務' : '選擇非固定任務', first)];
+    let second;
+    if (card.kind === 'swap') {
+      second = selectFor(eligible, eligible[1][0]);
+      fields.push(labeled('第二項任務', second));
+    }
+    openDialog(card.name, fields, () => {
+      const task = state.tasks[Number(first.value)];
+      if (card.kind === 'swap') {
+        if (first.value === second.value) {
+          get('dialog-error').textContent = '請選擇兩個不同的任務。';
+          return false;
+        }
+        const other = state.tasks[Number(second.value)];
+        [task.time, other.time] = [other.time, task.time];
+      } else if (card.kind === 'delay') {
+        task.time += ' · 延後 30 分鐘（待調整）';
+      } else {
+        task.status = 'skip';
+      }
+      apply();
+    }, '使用卡片');
+  };
+
+  get('add').onclick = () => {
+    const name = element('input');
+    name.required = true;
+    const time = element('input');
+    time.placeholder = '例：20:00–20:30';
+    openDialog('新增任務', [labeled('名稱', name), labeled('時間', time)], () => {
+      const title = name.value.trim();
+      if (!title) {
+        get('dialog-error').textContent = '請輸入任務名稱。';
+        return false;
+      }
+      state.tasks.push({ emoji: '⭐', name: title, time: time.value.trim() || '自由安排', status: 'todo', fixed: false });
+    });
+  };
+
+  get('reset').onclick = () => {
+    openDialog('重開一局', [element('p', '清除這個瀏覽器的進度，並回到 11/20 的初始行程。')], () => {
+      state = newGame();
+      get('die').textContent = '🎲';
+    }, '重開一局');
+  };
+
+  get('report').onclick = async () => {
+    const lines = ['🎲 Ciao Monopoly｜11/20', '完成度 ' + get('progress').textContent,
+      ...state.tasks.map(task => task.emoji + ' ' + task.name + '｜' + (statuses.find(([value]) => value === task.status)?.[1] ?? '待執行') + '｜' + task.time),
+      '改道卡：' + (state.card?.name ?? '未抽') + (state.used ? '｜已使用' : '')];
+    const report = lines.join('\n');
+    try {
+      await navigator.clipboard.writeText(report);
+      toast('戰績已複製');
+    } catch {
+      const copy = element('textarea');
+      copy.value = report;
+      copy.readOnly = true;
+      copy.setAttribute('aria-label', '戰績');
+      openDialog('今日戰績', [copy], () => {}, '關閉');
+      copy.select();
+    }
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>
