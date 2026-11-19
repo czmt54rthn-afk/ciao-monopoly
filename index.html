@@ -167,7 +167,7 @@ main { width: min(100% - 28px, 1080px); margin: 26px auto 48px; }
 .tasks { display: grid; padding: 3px 12px; }
 .task { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 7px; padding: 8px 0; border-bottom: 1px solid #d8c7df; }
 .task:last-child { border-bottom: 0; }
-.task small { display: block; font-size: .77rem; color: var(--muted); margin-top: 2px; }
+.task small { display: block; font-size: .77rem; color: var(--muted); margin-top: 2px; overflow-wrap: anywhere; }
 .task select, dialog select, dialog input, dialog textarea { min-height: 40px; border: 2px solid var(--ink); border-radius: 6px; background: #fffdf5; padding: 4px 6px; }
 .task select { font-size: .82rem; max-width: 104px; }
 .footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 9px 12px 13px; }
@@ -224,7 +224,8 @@ dialog textarea { min-height: 170px; width: 100%; }
       <ol>
         <li><strong>抽牌。</strong>直接點「抽一張卡」，抽出今天的改道選項。</li>
         <li><strong>決定要不要改道。</strong>每局只抽 1 張，用完就結束這局的改道機會。想用時點「使用卡片」，照卡片提示確認。</li>
-        <li><strong>記錄行程。</strong>展開行程，把任務標記完成。每項任務第一次完成可得 1 次擲骰，骰出的點數決定要玩哪款小遊戲。每輪六款各出現一次。</li>
+        <li><strong>記錄行程。</strong>每項任務選「完成」、「未完成」或「改做其他事」。選改做其他事時寫下實際內容；完成任務會得到擲骰機會。</li>
+        <li><strong>每日結算。</strong>每個任務都記錄後，按「今日結算」複製 KPI 回報，再貼到聊天裡；我就能接著計算並存進雲端紀錄。</li>
       </ol>
       <dl class="deck-list" id="deck-list"></dl>
     </div>
@@ -259,7 +260,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     <div class="tasks" id="tasks"></div>
     <div class="footer">
       <button class="btn mint" id="add">新增任務</button>
-      <button class="btn" id="report">複製戰績</button>
+      <button class="btn yellow" id="report" disabled>今日結算｜複製回傳資料</button>
       <button class="btn" id="reset">重開一局</button>
     </div>
   </details>
@@ -287,6 +288,7 @@ dialog textarea { min-height: 170px; width: 100%; }
 (() => {
   const get = id => document.getElementById(id);
   const storageKey = 'ciao-monopoly-v2';
+  const dayLabel = document.querySelector('.top > span:last-child').textContent.replace(/\s*行程$/, '').trim();
   const schedule = [
     ['💜', '志工', '08:00–15:30', true],
     ['👾', 'n8n 第一輪', '16:30–18:00'],
@@ -303,17 +305,19 @@ dialog textarea { min-height: 170px; width: 100%; }
     { emoji: '💗', name: '自由卡', text: '挑一段 30 分鐘的空檔，把自由時間排進今天。', kind: 'free' },
     { emoji: '😈', name: '免責卡', text: '跳過一項非固定任務。完成率照實記錄。', kind: 'skip' },
   ];
-  const statuses = [['todo', '待執行'], ['done', '✓ 完成'], ['skip', '未完成']];
+  const statuses = [['todo', '待執行'], ['done', '✓ 完成'], ['other', '✨ 改做其他事'], ['skip', '○ 未完成']];
   const gameFaces = [1, 2, 3, 4, 5, 6];
   const newGame = () => ({
+    day: dayLabel,
     tasks: schedule.map(([emoji, name, time, fixed]) => ({ emoji, name, time, fixed: Boolean(fixed), status: 'todo' })),
     card: null, used: false, arcade: { spent: 0, round: null, remaining: [...gameFaces] },
   });
   let state = newGame();
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
-    if (Array.isArray(saved?.tasks)) {
+    if (Array.isArray(saved?.tasks) && (!saved.day || saved.day === dayLabel)) {
       state = saved;
+      state.day ??= dayLabel;
       state.arcade ??= { spent: 0, round: null };
       state.arcade.remaining ??= gameFaces.filter(face => face !== state.arcade.round?.face);
       for (const task of state.tasks) task.rewardEarned ??= task.status === 'done';
@@ -417,10 +421,33 @@ dialog textarea { min-height: 170px; width: 100%; }
       const row = element('div', null, 'task');
       const description = element('div');
       description.append(element('strong', task.name), element('small', task.time + (task.fixed ? ' · 固定' : '')));
+      if (task.status === 'other' && task.actual) description.append(element('small', '實際改做：' + task.actual, 'actual-note'));
       const select = selectFor(statuses, task.status);
       select.setAttribute('aria-label', task.name + '狀態');
       select.onchange = () => {
-        task.status = select.value;
+        const nextStatus = select.value;
+        if (nextStatus === 'other') {
+          const actual = element('textarea');
+          actual.rows = 3;
+          actual.maxLength = 500;
+          actual.placeholder = '例如：原本要學 n8n，後來去散步／處理搬家／休息。';
+          actual.value = task.actual ?? '';
+          openDialog('這段時間實際做了什麼？', [element('p', '照實記下來就好，這筆會一起放進今日 KPI 回報。'), labeled('實際內容', actual)], () => {
+            const detail = actual.value.trim();
+            if (!detail) {
+              get('dialog-error').textContent = '寫一小句實際做的事就可以囉。';
+              return false;
+            }
+            task.status = 'other';
+            task.actual = detail;
+            state.settlement = null;
+          }, '儲存紀錄');
+          get('dialog').addEventListener('close', () => render(), { once: true });
+          return;
+        }
+        task.status = nextStatus;
+        if (task.status !== 'other') delete task.actual;
+        state.settlement = null;
         if (task.status === 'done' && !task.rewardEarned) {
           task.rewardEarned = true;
           toast('任務完成！獲得 1 次擲骰。');
@@ -437,6 +464,8 @@ dialog textarea { min-height: 170px; width: 100%; }
     const done = state.tasks.filter(task => task.status === 'done').length;
     const percent = state.tasks.length ? Math.round(done / state.tasks.length * 100) : 0;
     get('progress').textContent = done + '/' + state.tasks.length + ' · ' + percent + '%';
+    get('report').disabled = state.tasks.some(task => task.status === 'todo');
+    get('report').textContent = state.settlement ? '已結算｜重新複製回傳資料' : '今日結算｜複製回傳資料';
     get('draw').disabled = Boolean(card) || state.used;
     get('use').disabled = !card || state.used;
     get('card').dataset.drawn = Boolean(card);
@@ -1533,6 +1562,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     if (!card || state.used) return;
     const apply = () => {
       state.used = true;
+      state.settlement = null;
       get('schedule').open = true;
       toast('已使用「' + card.name + '」');
     };
@@ -1598,6 +1628,7 @@ dialog textarea { min-height: 170px; width: 100%; }
         return false;
       }
       state.tasks.push({ emoji: '⭐', name: title, time: time.value.trim() || '自由安排', status: 'todo', fixed: false });
+      state.settlement = null;
       sortTasks();
     });
   };
@@ -1611,13 +1642,32 @@ dialog textarea { min-height: 170px; width: 100%; }
   };
 
   get('report').onclick = async () => {
-    const lines = ['🎲 Ciao Monopoly｜11/20', '完成度 ' + get('progress').textContent,
-      ...state.tasks.map(task => task.emoji + ' ' + task.name + '｜' + (statuses.find(([value]) => value === task.status)?.[1] ?? '待執行') + '｜' + task.time),
-      '改道卡：' + (state.card?.name ?? '未抽') + (state.used ? '｜已使用' : '')];
+    if (state.tasks.some(task => task.status === 'todo')) return;
+    const total = state.tasks.length;
+    const completed = state.tasks.filter(task => task.status === 'done').length;
+    const changed = state.tasks.filter(task => task.status === 'other').length;
+    const unfinished = state.tasks.filter(task => task.status === 'skip').length;
+    const percent = total ? Math.round(completed / total * 100) : 0;
+    state.settlement = { day: dayLabel, total, completed, changed, unfinished, percent };
+    const details = state.tasks.map(task => {
+      const status = task.status === 'done' ? '✅ 完成'
+        : task.status === 'other' ? '🔄 改做其他事：' + task.actual
+          : '○ 未完成';
+      return task.emoji + ' ' + task.time + '｜' + task.name + '｜' + status;
+    });
+    const lines = [
+      '🎲 CIAO MONOPOLY｜每日 KPI 回報｜' + dayLabel,
+      '計畫任務完成率：' + completed + '／' + total + '（' + percent + '%）',
+      '完成 ' + completed + ' 項｜改做其他事 ' + changed + ' 項｜未完成 ' + unfinished + ' 項',
+      '', '【逐項紀錄】', ...details,
+      '', '改道卡：' + (state.card?.name ?? '未抽') + (state.used ? '｜已使用' : ''),
+      '小遊戲：已擲骰 ' + state.arcade.spent + ' 次' + (state.arcade.round?.score ? '｜最後一局 ' + state.arcade.round.score : ''),
+    ];
     const report = lines.join('\n');
+    render();
     try {
       await navigator.clipboard.writeText(report);
-      toast('戰績已複製');
+      toast('回報已複製！貼到聊天裡，我就幫妳算 KPI 並存進雲端。');
     } catch {
       const copy = element('textarea');
       copy.value = report;
