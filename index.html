@@ -101,7 +101,7 @@ main { width: min(100% - 28px, 1080px); margin: 26px auto 48px; }
 .game-bezel { padding: 4px; position: relative; isolation: isolate; border: 3px solid #151427; border-radius: 10px; overflow: hidden; background: #1b1730; box-shadow: 0 0 0 2px #6d5d91, 0 5px #181528; }
 .lcd-picture { position: relative; overflow: hidden; border-radius: 4px; }
 .lcd-picture::after { position: absolute; content: ""; inset: 0; background: repeating-linear-gradient(0deg, #1713291c 0 1px, transparent 1px 4px); box-shadow: inset 0 0 22px #100a2680; pointer-events: none; }
-.pixel-display { display: block; width: 100%; aspect-ratio: 192 / 74; background: #211a32; image-rendering: pixelated; }
+.pixel-display { display: block; width: 100%; aspect-ratio: 16 / 9; background: #211a32; image-rendering: pixelated; }
 .game-overlay { position: absolute; z-index: 1; inset: 0; display: grid; place-content: center; justify-items: center; gap: 5px; padding: 8px; text-align: center; background: linear-gradient(90deg, #1a122238, #1a1222bd 38% 62%, #1a122238); }
 .game-overlay[hidden] { display: none; }
 .game-overlay strong { color: var(--game-accent); font: 1000 clamp(1.24rem, 5vw, 2.5rem) / 1 ui-monospace, monospace; text-shadow: 2px 3px #21142d; }
@@ -147,6 +147,11 @@ main { width: min(100% - 28px, 1080px); margin: 26px auto 48px; }
 .game-controls .btn.hold-control { min-width: 138px; touch-action: none; user-select: none; -webkit-user-select: none; }
 .game-controls .btn.utility-control { min-width: 46px; min-height: 40px; padding: 5px 9px; border-radius: 12px; font-size: .82rem; }
 .game-header-tools { display: flex; align-items: center; gap: 8px; }
+.fight-meter { width: min(100%, 300px); height: 11px; margin: 1px auto; border: 2px solid #fff2d5; border-radius: 5px; background: #312749; overflow: hidden; }
+.fight-meter span { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #91e7b3, #ffdd7b, #ff819e); }
+.memory-readout { color: #fff4d7; min-height: 1.4em; font-size: .8rem; font-weight: 800; }
+.aim-selection { border-color: #ffe58c !important; background: #baf0cc !important; box-shadow: inset 0 2px #ffffff70, 0 0 0 2px #8fdcaf, 0 4px #151128 !important; }
+.game-lanes span[data-selected="true"] { background: #c4f1d2; border-color: #fff0a3; box-shadow: inset 0 0 0 2px #5eaf83; }
 .schedule summary { cursor: pointer; font-weight: 850; list-style: none; }
 .schedule summary::-webkit-details-marker { display: none; }
 .schedule summary::before { content: '▸'; }
@@ -410,12 +415,12 @@ dialog textarea { min-height: 170px; width: 100%; }
   }
 
   const games = [
-    ['⭕ 套圈圈', '等指標進入綠色區域，再按「丟圈」。三次機會。', ringGame],
+    ['⭕ 套圈圈', '抓準移動指標，瞄準不同的亮燈杯位投出三次，越準得分越高。', ringGame],
     ['🎣 溪畔釣魚', '按住蓄力拋竿；浮標下沉時揚竿。上鉤後按住收線，魚力變強時放開，安全釣起三尾。', fishingGame],
-    ['🥊 像素格鬥', '對手出拳就防禦，露出破綻就出拳。打五回合。', fightingGame],
-    ['🧠 閃燈記憶', '看完顏色順序，再照順序按出來。三輪，順序會愈來愈長。', memoryGame],
-    ['🚀 閃躲隕石', '每回合選一條沒有隕石的航道。撐過五回合。', dodgeGame],
-    ['👾 外星射手', '外星人會在三條軌道移動。看準牠所在的位置再開火，三次機會。', shooterGame],
+    ['🥊 像素格鬥', '看清對手的出拳提示，先防禦，再趁破綻反擊。連打五回合。', fightingGame],
+    ['🧠 閃燈記憶', '顏色會一個一個亮起，記住順序再照順序按，三輪會愈來愈長。', memoryGame],
+    ['🚀 閃躲隕石', '看隕石逐漸靠近，在撞上前移到空航道，躲過五波。', dodgeGame],
+    ['👾 外星射手', '自己切換瞄準位置，等外星人移動時開火；一共有五發。', shooterGame],
   ];
   const faces = ['🎲', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
   const pick = length => Math.floor(Math.random() * length);
@@ -541,64 +546,72 @@ dialog textarea { min-height: 170px; width: 100%; }
       ctx.imageSmoothingEnabled = false;
       if (face === 0) {
         landscape();
-        box(0, 60, width, 14, '#312741');
-        box(116, 52, 54, 6, '#b4718c');
-        box(121, 58, 44, 11, '#794e81');
-        for (let i = 0; i < 7; i++) box(121 + i * 7, 59, 3, 4, '#b78cb3');
-        sprite('mascot', 123, 21, 3);
-        sprite('cartridge', 163, 28, 2);
-        burst(117, 17, '#fff5ae');
-        burst(176, 15, '#fff1ae', .55);
-        sprite('tree', 101, 40, 2);
+        box(0, 87, width, 21, '#312741');
+        box(116, 76, 54, 7, '#b4718c');
+        box(121, 83, 44, 18, '#794e81');
+        for (let i = 0; i < 7; i++) box(121 + i * 7, 84, 3, 8, '#b78cb3');
+        sprite('mascot', 123, 30, 3);
+        sprite('cartridge', 163, 45, 2);
+        burst(117, 24, '#fff5ae');
+        burst(176, 23, '#fff1ae', .55);
+        sprite('tree', 101, 62, 2);
       } else if (face === 1) {
         landscape();
-        sprite('tree', 5, 31, 2);
-        sprite('tree', 170, 29, 2);
-        sprite('player', 27, 37, 2);
-        for (const [x, y] of [[82, 48], [115, 41], [147, 46]]) {
+        sprite('tree', 5, 58, 2);
+        sprite('tree', 170, 55, 2);
+        sprite('player', 27, 61, 2);
+        const targetLane = scene.targetLane ?? 1;
+        const targetXs = [82, 115, 147];
+        for (const [index, [x, y]] of [[82, 77], [115, 67], [147, 75]].entries()) {
+          if (index === targetLane) {
+            box(x - 3, y - 4, 14, 2, '#fff384');
+            box(x + 3, y - 7, 2, 3, '#fff384');
+          }
           box(x + 2, y + 2, 4, 13, '#664653');
           box(x, y, 8, 4, '#f7d773');
           box(x + 5, y + 2, 3, 11, '#bd7666');
         }
-        sprite('ring', effect ? 49 + phase * 65 : 49, effect ? 45 - Math.sin(phase * Math.PI) * 26 - phase * 7 : 45);
-        if (phase > .66) burst(119, 43, hit ? '#fff384' : '#ff9aba', phase);
+        const ringX = scene.ringX ?? 50;
+        const targetY = [77, 67, 75][targetLane];
+        sprite('ring', effect ? ringX + (targetXs[targetLane] - ringX) * phase : ringX, effect ? 77 - Math.sin(phase * Math.PI) * 28 + (targetY - 77) * phase : 77);
+        if (effect && phase > .68) burst(targetXs[targetLane] + 4, targetY - 2, hit ? '#fff384' : '#ff9aba', phase);
       } else if (face === 2) {
         const clock = performance.now() / 1000;
         const bobber = scene.bobberX ?? 111;
-        const bobY = scene.bobberY ?? 39 + Math.sin(clock * 2.1) * 1.5;
+        const bobY = scene.bobberY ?? 67 + Math.sin(clock * 2.1) * 1.5;
         const fishX = scene.fishX ?? 125 + Math.sin(clock * 1.4) * 12;
-        const fishY = scene.fishY ?? 59 + Math.sin(clock * 3.2) * 2;
+        const fishY = scene.fishY ?? 88 + Math.sin(clock * 3.2) * 2;
         box(0, 0, width, height, '#524a72');
-        box(0, 10, width, 17, '#8d7895');
-        box(136, 8, 18, 18, '#ffd78a');
-        box(141, 4, 10, 4, '#ffe8aa');
-        box(0, 26, width, 8, '#47566f');
+        box(0, 13, width, 21, '#8d7895');
+        box(136, 12, 18, 18, '#ffd78a');
+        box(141, 8, 10, 4, '#ffe8aa');
+        box(0, 35, width, 10, '#47566f');
         for (let i = 0; i < 7; i++) {
           const x = i * 34 - 8;
-          box(x + 4, 21, 13, 12, '#33495c');
-          box(x, 26, 21, 8, '#33495c');
+          box(x + 4, 30, 13, 15, '#33495c');
+          box(x, 36, 21, 10, '#33495c');
         }
-        box(0, 34, width, 18, '#568b91');
-        box(0, 37, width, 18, '#407b83');
-        box(0, 42, width, 18, '#326b76');
-        box(0, 49, width, 25, '#285460');
+        box(0, 46, width, 23, '#568b91');
+        box(0, 52, width, 23, '#407b83');
+        box(0, 60, width, 25, '#326b76');
+        box(0, 70, width, 38, '#285460');
         for (let i = 0; i < 20; i++) {
           const x = (i * 31 + Math.floor(clock * (i % 2 ? 10 : -6)) + 400) % 205 - 6;
-          const y = 36 + (i * 7) % 26;
+          const y = 49 + (i * 13) % 47;
           box(x, y, i % 4 === 0 ? 13 : 7, 1, i % 3 === 0 ? '#a2c6a3' : '#6da6a0');
         }
-        box(0, 56, 50, 18, '#c19174');
-        box(0, 54, 48, 3, '#e4bd90');
+        box(0, 82, 50, 26, '#c19174');
+        box(0, 79, 48, 3, '#e4bd90');
         for (let i = 0; i < 5; i++) {
-          box(i * 11 + 3, 51 - i % 2 * 4, 2, 8, '#477a64');
-          box(i * 11, 50 - i % 2 * 4, 7, 3, '#8fc180');
+          box(i * 11 + 3, 73 - i % 2 * 5, 2, 10, '#477a64');
+          box(i * 11, 71 - i % 2 * 5, 7, 4, '#8fc180');
         }
-        sprite('player', 22, 36, 2);
-        box(37, 44, 15, 1, '#e2b77e');
-        box(49, 39, 14, 1, '#e2b77e');
-        box(60, 34, 12, 1, '#f2d9b8');
-        box(70, 34, 1, Math.max(3, Math.round(bobY - 34)), '#f2d9b8');
-        box(69, Math.round(bobY + 3), 3, 3, '#f6c977');
+        sprite('player', 22, 52, 2);
+        box(37, 63, 15, 1, '#e2b77e');
+        box(49, 57, 14, 1, '#e2b77e');
+        box(60, 56, 12, 1, '#f2d9b8');
+        box(70, 56, 1, Math.max(3, Math.round(bobY - 56)), '#f2d9b8');
+        box(69, Math.round(bobY + 3), 3, 4, '#f6c977');
         box(Math.round(bobber), Math.round(bobY), 3, 5, scene.stage === 'bite' ? '#ff7895' : '#ffe17d');
         box(Math.round(bobber) - 1, Math.round(bobY) + 2, 5, 2, '#fff4d7');
         box(Math.round(bobber) + 1, Math.round(bobY) + 6, 1, 2, '#e3d4b5');
@@ -629,46 +642,60 @@ dialog textarea { min-height: 170px; width: 100%; }
         }
       } else if (face === 3) {
         box(0, 0, width, height, '#53365f');
-        box(0, 12, width, 32, '#704064');
-        for (let i = 0; i < 13; i++) box(i * 16 + 4, 17 + i % 4 * 5, 9, 32, '#5c3d65');
-        box(0, 58, width, 16, '#a96977');
-        box(0, 58, width, 3, '#ffc17b');
-        for (let i = 0; i < 12; i++) box(i * 17, 67, 10, 1, '#d38487');
+        box(0, 18, width, 43, '#704064');
+        for (let i = 0; i < 13; i++) box(i * 16 + 4, 24 + i % 4 * 6, 9, 39, '#5c3d65');
+        box(0, 77, width, 31, '#a96977');
+        box(0, 77, width, 4, '#ffc17b');
+        for (let i = 0; i < 12; i++) box(i * 17, 94, 10, 1, '#d38487');
         const step = Math.sin(phase * Math.PI);
-        sprite('player', 50 + (effect && input === 'attack' ? 25 * step : 0), 29, 3);
+        sprite('player', 50 + (effect && input === 'attack' ? 25 * step : 0), 49, 3);
         if (effect && input === 'block') {
-          box(72, 36, 4, 18, '#b8e9ed');
-          box(76, 40, 3, 10, '#78b8df');
+          box(72, 57, 4, 21, '#b8e9ed');
+          box(76, 61, 3, 12, '#78b8df');
         }
-        sprite('robot', 116 - (cue === 'attack' ? 8 : 0), 32, 3, true);
-        if (cue) burst(126, 24, cue === 'attack' ? '#ffa1b0' : '#ffe681');
-        if (effect) burst(89, 43, hit ? '#ffec8e' : '#eab0f3', phase);
+        sprite('robot', 116 - (cue === 'attack' ? 8 : 0), 52, 3, true);
+        if (cue) burst(126, 39, cue === 'attack' ? '#ffa1b0' : cue === 'open' ? '#ffe681' : '#c5b8ef', .7);
+        if (effect) burst(89, 68, hit ? '#ffec8e' : '#eab0f3', phase);
       } else if (face === 4) {
         box(0, 0, width, height, '#2f284a');
         const lights = ['#f688b5', '#ffdb74', '#86e0ad', '#bb9bff'];
         const chips = sequence.length ? sequence : [0, 1, 2, 3];
         chips.forEach((chip, index) => {
           const x = 96 - chips.length * 17 + index * 34;
-          box(x, 20, 27, 31, '#1d1730');
-          box(x + 3, 23, 21, 22, sequence.length || color === chip ? lights[chip] : '#645078');
-          box(x + 6, 25, 4, 2, '#ffffff66');
-          box(x + 8, 48, 12, 2, '#bb9bff');
+          box(x, 30, 27, 43, '#1d1730');
+          box(x + 3, 34, 21, 31, sequence.length ? scene.active === index ? lights[chip] : '#645078' : color === chip ? lights[chip] : '#645078');
+          box(x + 6, 37, 4, 2, '#ffffff66');
+          box(x + 8, 67, 12, 2, '#bb9bff');
         });
-        if (effect) burst(98, 61, hit ? '#9aebbd' : '#ff9ab8');
+        if (scene.sequence?.length && scene.active !== undefined) {
+          box(48, 86, 96, 3, '#51466c');
+          box(48, 86, 96 * ((scene.active + 1) / scene.sequence.length), 3, '#9fe8b9');
+        }
+        if (effect) burst(98, 96, hit ? '#9aebbd' : '#ff9ab8');
       } else {
         space();
         if (face === 5) {
+          const arrival = Math.max(0, Math.min(1, scene.arrival ?? .55));
           if (cue) for (let lane = 0; lane < 3; lane++) {
-            if (lane !== safe) sprite('rock', 45 + lane * 42, 20 + lane % 2 * 5, 3);
+            if (lane !== safe) {
+              const rockX = 45 + lane * 42;
+              const rockY = 9 + arrival * 30 + lane % 2 * 5;
+              const rockScale = 2 + arrival;
+              sprite('rock', rockX, rockY, rockScale);
+              box(rockX - 2, rockY + 14, 19, 1, arrival > .72 ? '#ff9d9a' : '#796b98');
+            }
           }
-          sprite('rocket', 90 + (effect ? (input - 1) * 42 * phase : 0), 49);
-          if (effect) burst(55 + input * 42, 48, hit ? '#91eac6' : '#ffad9f', phase);
+          const lane = scene.playerLane ?? 1;
+          sprite('rocket', 48 + lane * 42 + (effect ? (input - lane) * 42 * phase : 0), 79);
+          if (effect) burst(55 + input * 42, 78, hit ? '#91eac6' : '#ffad9f', phase);
         } else {
-          sprite('invader', 47 + aim * 42, 13, 2);
-          sprite('rocket', 48 + (effect ? input : 1) * 42, 49);
+          const bob = Math.sin(performance.now() / 180) * 2;
+          sprite('invader', 47 + aim * 42, 13 + bob, 2);
+          sprite('rocket', 48 + (scene.playerAim ?? 1) * 42, 79);
           if (effect) {
-            box(55 + input * 42, 46 - phase * 28, 2, 9, '#f9e38b');
-            if (phase > .7) burst(55 + input * 42, 23, hit ? '#95ecba' : '#ffad9f', phase);
+            const x = 55 + input * 42;
+            box(x, 76 - phase * 48, 2, 12, '#f9e38b');
+            if (phase > .7) burst(x, 23 + bob, hit ? '#95ecba' : '#ffad9f', phase);
           }
         }
       }
@@ -699,7 +726,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     const headline = element('strong');
     const caption = element('span');
     display.width = 192;
-    display.height = 74;
+    display.height = 108;
     display.setAttribute('aria-hidden', 'true');
     const paint = pixelStage(face, display);
     paint({});
@@ -797,7 +824,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     const status = message => { prompt.textContent = message; };
 
     if (round.finished) {
-      stage.message('本局結束', round.score);
+      stage.message(round.resultTitle ?? '本局結束', round.resultSubtitle ?? round.score);
       screen.hidden = true;
       score.textContent = round.score;
       score.dataset.finished = 'true';
@@ -808,6 +835,8 @@ dialog textarea { min-height: 170px; width: 100%; }
       stopGame();
       round.finished = true;
       round.score = result;
+      round.resultTitle = presentation.title ?? '本局結束';
+      round.resultSubtitle = presentation.subtitle ?? result;
       score.textContent = result;
       score.dataset.finished = 'true';
       stage.message(presentation.title ?? '本局結束', presentation.subtitle ?? result);
@@ -825,50 +854,72 @@ dialog textarea { min-height: 170px; width: 100%; }
     stage.message(name.slice(name.indexOf(' ') + 1), '骰出 ' + round.face + ' 點');
     buttons([['開始遊戲', () => {
       stage.message('');
-      play({ view, buttons, status, updateScore, finish, later, paint: stage.paint });
+      play({ view, buttons, status, updateScore, finish, later, paint: stage.paint, sound: chirp });
     }]]);
     status('準備好了就按開始。');
   }
 
-  function ringGame({ view, buttons, status, updateScore, finish, later, paint }) {
+  function ringGame({ view, buttons, status, updateScore, finish, later, paint, sound }) {
     const meter = element('div', null, 'meter');
     const target = element('span', null, 'meter-target');
     const marker = element('span', null, 'meter-marker');
-    meter.setAttribute('aria-label', '套圈圈時機指標');
+    meter.setAttribute('aria-label', '移動指標與套圈目標的距離');
     meter.append(target, marker);
     view.replaceChildren(meter);
     let hits = 0;
     let attempts = 0;
     let position = 0;
-    let center = 25 + pick(51);
+    let lane = pick(3);
+    let center = [26, 50, 74][lane];
+    let lastLane = lane;
     let started = performance.now();
-    const targetWidth = 24;
+    const widths = [24, 19, 14];
+    let targetWidth = widths[0];
     const setTarget = () => {
       target.style.left = (center - targetWidth / 2) + '%';
       target.style.width = targetWidth + '%';
     };
     function animate() {
-      const phase = ((performance.now() - started) % 1700) / 850;
+      const speed = 1700 - attempts * 220;
+      const phase = ((performance.now() - started) % speed) / (speed / 2);
       position = (phase < 1 ? phase : 2 - phase) * 100;
       marker.style.left = position + '%';
+      paint({ targetLane: lane, ringX: 53 + position * 1.25 });
       later(animate, 32);
     }
-    setTarget();
-    animate();
-    updateScore(hits, attempts, 3);
-    status('看準綠色區域！');
-    buttons([['丟圈', () => {
-      const hit = Math.abs(position - center) <= targetWidth / 2;
-      paint({ effect: true, hit });
-      hits += Number(hit);
-      attempts++;
-      if (attempts === 3) return finish('套中 ' + hits + '／3');
-      status(hit ? '套中了！' : '差一點，再試一次。');
-      updateScore(hits, attempts, 3);
-      center = 25 + pick(51);
+    function nextRound(message = '指標掃過杯位時，抓準綠色區域丟圈！') {
+      lane = pick(3);
+      if (lane === lastLane) lane = (lane + 1 + pick(2)) % 3;
+      lastLane = lane;
+      center = [26, 50, 74][lane];
+      targetWidth = widths[attempts];
       started = performance.now();
       setTarget();
-    }]]);
+      paint({ targetLane: lane, ringX: 53 });
+      updateScore(hits, attempts, 3);
+      status(message);
+      animate();
+      buttons([['丟出套圈', () => {
+        stopGame();
+        const distance = Math.abs(position - center);
+        const hit = distance <= targetWidth / 2;
+        const bullseye = distance <= targetWidth * .18;
+        hits += Number(hit);
+        attempts++;
+        paint({ targetLane: lane, ringX: 53 + position * 1.25, effect: true, hit });
+        sound(bullseye ? 1120 : hit ? 820 : 260, .1, bullseye ? 'triangle' : 'square');
+        if (hit) { try { navigator.vibrate?.(bullseye ? [18, 35, 18] : 16); } catch {} }
+        updateScore(hits, attempts, 3);
+        buttons([]);
+        if (attempts === 3) {
+          const title = hits === 3 ? '全中大師！' : hits >= 2 ? '圈圈高手！' : hits === 1 ? '套中一圈！' : '再來一圈？';
+          const result = '套中 ' + hits + '／3';
+          return finish(result, { title, subtitle: result });
+        }
+        later(() => nextRound(bullseye ? '正中紅心！下一杯距離更遠，指標也更快了。' : hit ? '套中了！下一個杯位更小心。' : '差一點，下一次看準再丟。'), 440);
+      }]]);
+    }
+    nextRound();
   }
 
   function fishingGame({ view, buttons, status, updateScore, finish, later, paint }) {
@@ -983,12 +1034,12 @@ dialog textarea { min-height: 170px; width: 100%; }
       status('魚餌落水，先觀察浮標的動靜。');
       paint({ stage: 'wait', bobberX, fishX: bobberX + 8, fishY: 60 });
       later(() => {
-        paint({ stage: 'wait', tease: true, bobberX, bobberY: 38, fishX: bobberX + 2, fishY: 57 });
+          paint({ stage: 'wait', tease: true, bobberX, bobberY: 67, fishX: bobberX + 2, fishY: 88 });
         setTip('浮標輕晃了⋯⋯牠還在試探魚餌。');
         status('浮標輕輕動了一下，先等等。');
         later(() => {
           phaseStarted = performance.now();
-          paint({ stage: 'bite', bobberX, bobberY: 51, fishX: bobberX + 4, fishY: 48 });
+          paint({ stage: 'bite', bobberX, bobberY: 82, fishX: bobberX + 4, fishY: 75 });
           chirp(930, .09);
           buzz([22, 30, 22]);
           setTip('咬鉤了！看到浮標下沉，立刻揚竿！');
@@ -1050,7 +1101,7 @@ dialog textarea { min-height: 170px; width: 100%; }
         updateGauge('魚線張力', Math.round(tension * 100) + '%', tension, 'tension');
         roundLabel.textContent = '距離 ' + Math.max(0, 100 - Math.round(progress * 100)) + '%';
         fill.style.background = tension > .75 ? 'linear-gradient(90deg,#ffca72,#ff6384)' : '';
-        paint({ stage: 'reel', bobberX, bobberY: 41 + Math.sin(now / 250) * 1.5, fishX: bobberX - 24 + Math.sin(now / 460) * 12, fishY: 52, surge, tension, progress });
+        paint({ stage: 'reel', bobberX, bobberY: 69 + Math.sin(now / 250) * 1.5, fishX: bobberX - 24 + Math.sin(now / 460) * 12, fishY: 86, surge, tension, progress });
         if (dangerTime >= .75) {
           chirp(190, .26);
           return nextAttempt('魚線繃得太緊，啪一聲斷掉了。');
@@ -1080,129 +1131,248 @@ dialog textarea { min-height: 170px; width: 100%; }
     showCast();
   }
 
-  function fightingGame({ buttons, status, updateScore, finish, paint }) {
+  function fightingGame({ view, buttons, status, updateScore, finish, later, paint, sound }) {
+    const total = 5;
     let hits = 0;
     let attempts = 0;
-    const cues = Array.from({ length: 5 }, (_, index) => (index + pick(2)) % 2);
-    function next(message = '', feedback = {}) {
-      const attacking = cues[attempts] === 1;
-      paint({ cue: attacking ? 'attack' : 'open', ...feedback });
-      status([message, attacking ? '對手出拳了！' : '對手露出破綻！'].filter(Boolean).join(' '));
-      updateScore(hits, attempts, 5);
-      buttons([['出拳', () => answer(!attacking, 'attack')], ['防禦', () => answer(attacking, 'block')]]);
+    let phase = 'windup';
+    const timer = element('div', null, 'fight-meter');
+    const timerFill = element('span');
+    timer.append(timerFill);
+    view.replaceChildren(timer);
+    function setWindow(duration) {
+      timerFill.style.transition = 'none';
+      timerFill.style.width = '100%';
+      requestAnimationFrame(() => {
+        timerFill.style.transition = 'width ' + duration + 'ms linear';
+        timerFill.style.width = '0%';
+      });
     }
-    function answer(hit, input) {
-      hits += Number(hit);
+    function next(message = '看對手肩膀的動作，準備接招。') {
+      phase = 'windup';
+      paint({ cue: 'windup' });
+      status('第 ' + (attempts + 1) + ' 回合。' + message);
+      updateScore(hits, attempts, total);
+      buttons([]);
+      later(() => {
+        phase = 'strike';
+        const window = Math.max(530, 760 - attempts * 42);
+        paint({ cue: 'attack' });
+        status('對手出拳！快按「防禦」。');
+        setWindow(window);
+        sound(360, .07);
+        buttons([['防禦', parry]]);
+        later(() => miss('慢了一拍，對手打中你。'), window);
+      }, 500 + pick(180));
+    }
+    function resolve(hit, message, cue, input) {
+      stopGame();
       attempts++;
-      if (attempts === 5) {
-        paint({ effect: true, hit, input });
-        return finish('招式成功 ' + hits + '／5');
+      hits += Number(hit);
+      paint({ cue, effect: true, hit, input });
+      sound(hit ? 920 : 250, .12, hit ? 'triangle' : 'square');
+      if (hit) { try { navigator.vibrate?.([16, 28, 18]); } catch {} }
+      updateScore(hits, attempts, total);
+      if (attempts >= total) {
+        const title = hits === total ? '格鬥冠軍！' : hits >= 3 ? '連招高手！' : hits >= 1 ? '漂亮反擊！' : '再練一回合？';
+        const result = '成功反擊 ' + hits + '／' + total;
+        return finish(result, { title, subtitle: result });
       }
-      next(hit ? '漂亮！' : '這招沒奏效。', { effect: true, hit, input });
+      status(message);
+      buttons([]);
+      later(() => next(hit ? '防得漂亮，下一拳來了！' : '重新站穩，留意下一次出拳。'), 500);
+    }
+    function miss(message) { resolve(false, message, 'attack', 'block'); }
+    function parry() {
+      if (phase !== 'strike') return;
+      stopGame();
+      phase = 'open';
+      const window = Math.max(560, 850 - attempts * 48);
+      paint({ cue: 'open', input: 'block', effect: true, hit: true });
+      sound(760, .08, 'triangle');
+      try { navigator.vibrate?.(12); } catch {}
+      status('擋住了！趁破綻立刻按「出拳」。');
+      setWindow(window);
+      buttons([['出拳反擊', counter]]);
+      later(() => miss('破綻消失了，這回合來不及反擊。'), window);
+    }
+    function counter() {
+      if (phase !== 'open') return;
+      resolve(true, '漂亮反擊！', 'open', 'attack');
     }
     next();
   }
 
-  function memoryGame({ view, buttons, status, updateScore, finish, later, paint }) {
+  function memoryGame({ view, buttons, status, updateScore, finish, later, paint, sound }) {
     const colors = ['粉', '黃', '綠', '紫'];
     const icons = ['🩷', '💛', '💚', '💜'];
+    const notes = [520, 660, 780, 960];
     let hits = 0;
     let attempts = 0;
+    let sequence = [];
+    let index = 0;
+    const readout = element('div', '每輪順序會變長。', 'memory-readout');
+    view.replaceChildren(readout);
     function ready(message = '準備記住顏色！') {
-      status(message);
-      view.replaceChildren();
+      readout.textContent = message;
+      status('按「開始記憶」，看顏色一個一個亮起。');
       updateScore(hits, attempts, 3);
-      buttons([['顯示順序', show]]);
+      buttons([['開始記憶', show]]);
     }
     function show() {
-      const sequence = Array.from({ length: attempts + 2 }, () => pick(colors.length));
-      paint({ sequence });
-      let index = 0;
-      view.replaceChildren(element('span', sequence.map(color => icons[color]).join(' '), 'game-symbol'));
-      status(sequence.map(color => colors[color]).join('、'));
+      sequence = Array.from({ length: attempts + 3 }, () => pick(colors.length));
+      index = 0;
+      readout.textContent = '第 ' + (attempts + 1) + ' 輪 · ' + sequence.length + ' 個訊號';
+      paint({ sequence, active: -1 });
+      status('留意每次亮起的顏色和順序。');
       buttons([]);
-      later(() => {
-        view.replaceChildren();
-        paint({});
-        status('照順序按下顏色。');
-        buttons(colors.map((color, value) => [icons[value] + ' ' + color, () => {
-          if (sequence[index] !== value) return resolve(false);
-          index++;
-          paint({ color: value });
-          if (index === sequence.length) return resolve(true);
-          status('已輸入 ' + index + '／' + sequence.length);
-        }]));
-      }, 1600 + attempts * 450);
+      let step = 0;
+      function flashNext() {
+        if (step >= sequence.length) {
+          paint({ sequence, active: -1 });
+          readout.textContent = '換妳了！照順序點顏色';
+          status('依序按下剛剛亮起的顏色。');
+          return buttons(colors.map((color, value) => [icons[value] + ' ' + color, () => {
+            if (sequence[index] !== value) return resolve(false);
+            index++;
+            paint({ sequence, active: index - 1 });
+            readout.textContent = '已記住 ' + index + '／' + sequence.length;
+            sound(notes[value], .11, 'triangle');
+            try { navigator.vibrate?.(10); } catch {}
+            if (index === sequence.length) return resolve(true);
+            status('對了，接著找下一個顏色。');
+          }]));
+        }
+        paint({ sequence, active: step });
+        sound(notes[sequence[step]], .15, 'square');
+        later(() => {
+          paint({ sequence, active: -1 });
+          step++;
+          later(flashNext, 170);
+        }, 430);
+      }
+      flashNext();
     }
     function resolve(hit) {
+      buttons([]);
       paint({ effect: true, hit });
       hits += Number(hit);
       attempts++;
-      if (attempts === 3) return finish('記對 ' + hits + '／3 組');
-      ready(hit ? '記對了！' : '這組順序不同。');
+      sound(hit ? 1020 : 210, .16, hit ? 'triangle' : 'square');
+      if (attempts === 3) {
+        const title = hits === 3 ? '超級記憶王！' : hits >= 2 ? '記憶高手！' : hits === 1 ? '好腦力！' : '再來一輪？';
+        const result = '記對 ' + hits + '／3 組';
+        return finish(result, { title, subtitle: result });
+      }
+      later(() => ready(hit ? '整組背對了！' : '順序不太一樣，再記一次。'), 420);
     }
     ready();
   }
 
-  function showLanes(view, symbols, labels) {
+  function showLanes(view, symbols, labels, selected = -1) {
     const lanes = element('div', null, 'game-lanes');
     symbols.forEach((symbol, index) => {
       const lane = element('span', symbol);
       lane.setAttribute('aria-label', labels[index]);
+      if (index === selected) lane.dataset.selected = 'true';
       lanes.append(lane);
     });
     view.replaceChildren(lanes);
   }
 
-  function dodgeGame({ view, buttons, status, updateScore, finish, paint }) {
+  function dodgeGame({ view, buttons, status, updateScore, finish, later, paint, sound }) {
     const directions = ['左', '中', '右'];
     let hits = 0;
     let attempts = 0;
-    function next(message = '', feedback = {}) {
-      const safe = pick(3);
-      paint({ cue: 'obstacles', safe, ...feedback });
-      const labels = directions.map((direction, index) => direction + (index === safe ? '空' : '有隕石'));
-      showLanes(view, directions.map((_, index) => index === safe ? '·' : '☄️'), labels);
-      status(message + '選一條空航道。');
+    let playerLane = 1;
+    let phaseStarted = 0;
+    let safeLane = 0;
+    let duration = 2000;
+    function next(message = '隕石來了！看清空航道，在撞上前移過去。') {
+      safeLane = pick(3);
+      duration = Math.max(1120, 2050 - attempts * 185);
+      phaseStarted = performance.now();
+      paint({ cue: 'obstacles', safe: safeLane, arrival: 0, playerLane });
+      showLanes(view, ['←', '↑', '→'], directions.map((direction, index) => direction + '航道' + (index === playerLane ? '，目前位置' : '')), playerLane);
+      status(message);
       updateScore(hits, attempts, 5);
-      buttons(directions.map((direction, index) => [direction, () => {
-        const hit = index === safe;
+      buttons(directions.map((direction, index) => [direction + (index === playerLane ? '航道' : '移到' + direction), () => {
+        playerLane = index;
+        const arrival = Math.min(1, (performance.now() - phaseStarted) / duration);
+        paint({ cue: 'obstacles', safe: safeLane, arrival, playerLane });
+        showLanes(view, ['←', '↑', '→'], directions.map((name, lane) => name + '航道' + (lane === playerLane ? '，目前位置' : '')), playerLane);
+        status('隕石還在靠近，可以再換一次航道。');
+      }]));
+      function animateArrival() {
+        const arrival = Math.min(1, (performance.now() - phaseStarted) / duration);
+        paint({ cue: 'obstacles', safe: safeLane, arrival, playerLane });
+        if (arrival < 1) return later(animateArrival, 45);
+        const hit = playerLane === safeLane;
         hits += Number(hit);
         attempts++;
-        const feedback = { effect: true, hit, input: index };
+        paint({ cue: 'obstacles', safe: safeLane, arrival: 1, playerLane, effect: true, hit, input: playerLane });
+        sound(hit ? 870 : 230, .14, hit ? 'triangle' : 'square');
+        if (hit) { try { navigator.vibrate?.(16); } catch {} }
         if (attempts === 5) {
-          paint({ cue: 'obstacles', safe, ...feedback });
-          return finish('安全通過 ' + hits + '／5');
+          const title = hits === 5 ? '王牌飛行員！' : hits >= 3 ? '航道高手！' : hits >= 1 ? '成功脫險！' : '重整再出發？';
+          const result = '安全通過 ' + hits + '／5';
+          return finish(result, { title, subtitle: result });
         }
-        next(hit ? '安全通過！' : '撞到隕石了。', feedback);
-      }]));
+        later(() => next(hit ? '漂亮閃過！下一波來得更快。' : '碰到碎石了，重新找空航道。'), 500);
+      }
+      animateArrival();
     }
     next();
   }
 
-  function shooterGame({ view, buttons, status, updateScore, finish, later, paint }) {
+  function shooterGame({ view, buttons, status, updateScore, finish, later, paint, sound }) {
     const directions = ['左', '中', '右'];
     let target = pick(3);
-    let attempts = 0;
+    let aim = 1;
+    let shots = 0;
     let hits = 0;
-    function move() {
-      paint({ aim: target });
-      const labels = directions.map((direction, index) => direction + (index === target ? '有外星人' : '空'));
-      showLanes(view, directions.map((_, index) => index === target ? '👾' : '·'), labels);
-      later(() => { target = (target + 1) % directions.length; move(); }, 725);
+    let lastShot = 0;
+    const total = 5;
+    function drawAimStatus(message) {
+      paint({ aim: target, playerAim: aim });
+      showLanes(view, ['←', '◎', '→'], directions.map((direction, index) => direction + '瞄準' + (index === aim ? '，準星目前位置' : '')), aim);
+      status(message);
     }
-    status('看準外星人所在的軌道。');
-    updateScore(hits, attempts, 3);
-    move();
-    buttons(directions.map((direction, index) => [direction + '側開火', () => {
-      const hit = target === index;
-      paint({ aim: target, effect: true, hit, input: index });
-      attempts++;
+    function move() {
+      let next = pick(3);
+      if (next === target) next = (next + 1 + pick(2)) % 3;
+      target = next;
+      paint({ aim: target, playerAim: aim });
+      later(move, 650 + pick(300));
+    }
+    function fire() {
+      const now = performance.now();
+      if (now - lastShot < 220) return;
+      lastShot = now;
+      const hit = aim === target;
+      shots++;
       hits += Number(hit);
-      if (attempts === 3) return finish('命中 ' + hits + '／3');
-      status(hit ? '命中了！' : '打空了！');
-      updateScore(hits, attempts, 3);
-    }]));
+      paint({ aim: target, playerAim: aim, effect: true, hit, input: aim });
+      sound(hit ? 880 : 280, .1, hit ? 'triangle' : 'square');
+      if (hit) { try { navigator.vibrate?.(12); } catch {} }
+      updateScore(hits, shots, total);
+      if (shots === total) {
+        const title = hits === total ? '銀河神槍手！' : hits >= 3 ? '王牌射手！' : hits >= 1 ? '擊落成功！' : '再鎖定目標？';
+        const result = '命中 ' + hits + '／' + total;
+        return finish(result, { title, subtitle: result });
+      }
+      drawAimStatus(hit ? '命中！外星人又換位置了。' : '射偏了，調整準星再試一次。');
+    }
+    drawAimStatus('用左、中、右調準星，等外星人移進準星再開火。');
+    updateScore(hits, shots, total);
+    buttons([
+      ...directions.map((direction, index) => ['瞄準' + direction, () => {
+        aim = index;
+        drawAimStatus('準星移到' + direction + '側，找外星人的下一步。');
+      }]),
+      ['開火', fire],
+    ]);
+    move();
   }
 
   get('roll').onclick = () => {
