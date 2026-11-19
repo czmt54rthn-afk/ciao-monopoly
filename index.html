@@ -908,7 +908,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     let surge = false;
     let lastTick = 0;
     let bobberX = 112;
-    let gameEnded = false;
+    let windName = '微風';
 
     const buzz = (pattern = 14) => { try { navigator.vibrate?.(pattern); } catch {} };
     function updateReadout(left, right) {
@@ -934,8 +934,7 @@ dialog textarea { min-height: 170px; width: 100%; }
         chirp(catches ? 880 : 250, .22, catches ? 'triangle' : 'square');
         return finish(result, { title, subtitle: result });
       }
-      status(message + ' 換個角度再試試。');
-      showCast();
+      showCast(message + ' 換個角度再試試。');
     }
     function showCast(message = '按住「蓄力拋竿」，在綠色區放開。') {
       stopGame();
@@ -975,9 +974,10 @@ dialog textarea { min-height: 170px; width: 100%; }
       currentFish = fishKinds[pick(fishKinds.length)];
       bobberX = Math.round(74 + castPower * 64);
       const wind = pick(3) - 1;
+      windName = wind > 0 ? '順風' : wind < 0 ? '逆風' : '微風';
       const adjusted = Math.max(.08, Math.min(1, castPower + wind * .035));
       perfectCast = perfectCast && adjusted >= .60 && adjusted <= .85;
-      updateReadout('🎣 ' + currentFish.name, '第 ' + (attempts + 1) + ' 投／3');
+      updateReadout('🍃 ' + windName + ' · ' + currentFish.name, '第 ' + (attempts + 1) + ' 投／3');
       updateGauge('落點', perfectCast ? '漂亮！' : '落水', adjusted);
       setTip(perfectCast ? '正中魚群附近，這竿很漂亮！' : '魚餌落水了，盯緊浮標。');
       status('魚餌落水，先觀察浮標的動靜。');
