@@ -24,7 +24,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; touch-action: manipulation; }
 button:disabled { cursor: default; }
 :focus-visible { outline: 3px solid #6743ec; outline-offset: 4px; }
-main { width: min(100% - 28px, 920px); margin: 26px auto 48px; }
+main { width: min(100% - 28px, 1080px); margin: 26px auto 48px; }
 .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 800 .8rem ui-monospace, monospace; letter-spacing: .04em; padding: 0 3px 12px; }
 .brand { display: flex; gap: 8px; align-items: center; }
 .mark { width: 12px; height: 12px; background: var(--pink); border: 2px solid var(--ink); box-shadow: 2px 2px var(--ink); transform: rotate(45deg); }
@@ -71,7 +71,22 @@ main { width: min(100% - 28px, 920px); margin: 26px auto 48px; }
 .arcade { --cabinet: #b8e5cc; --screen-ink: #17142c; background: var(--cabinet); }
 .arcade .panel-head { background: #ffdb7a; }
 .arcade .counter { background: var(--paper); }
-.game { --game-accent: #ffdb61; margin: 0 13px 14px; padding: clamp(10px, 3vw, 20px); border: 3px solid #24213b; border-radius: 16px; background: #2d2848; color: var(--paper); box-shadow: inset 0 0 0 2px #514a6c, 0 3px #24213b; }
+.arcade-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.arcade-actions .btn { min-height: 35px; padding: 4px 9px; font-size: .85rem; }
+.arcade-home { display: flow-root; }
+.arcade-dialog:modal { max-width: none; max-height: none; }
+.arcade-dialog { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; border: 0; border-radius: 0; padding: max(8px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)); background: #17152b; color: var(--paper); overflow: auto; }
+.arcade-dialog .arcade-home { color: var(--ink); background: var(--mint); border-radius: 12px; margin: 0 auto; max-width: 1120px; }
+.arcade-dialog-head { position: sticky; top: 0; z-index: 2; display: flex; justify-content: flex-end; margin: 0 auto 9px; max-width: 1120px; }
+.arcade-dialog .game { margin: 0 7px 7px; }
+.arcade-dialog .game-bay { max-width: min(100%, 980px); }
+@media (orientation: landscape) and (max-height: 620px) {
+  .arcade-dialog .game-bay { max-width: min(100%, calc(2.6 * (100dvh - 155px))); min-width: min(100%, 360px); }
+  .arcade-dialog .roll-station { padding: 5px 9px; }
+  .arcade-dialog .game { padding: 7px; }
+}
+
+.game { --game-accent: #ffdb61; margin: 0 13px 14px; padding: clamp(6px, 2.2vw, 20px); border: 3px solid #24213b; border-radius: 22px 22px 32px 32px; background: #d7cef4; color: #2a2240; box-shadow: inset 0 0 0 2px #eee7fd, inset 0 -7px #b7a4da, 0 4px #24213b; }
 .game[data-face="1"] { --game-accent: #ffcb72; }
 .game[data-face="2"] { --game-accent: #9fedda; }
 .game[data-face="3"] { --game-accent: #ffa5bf; }
@@ -79,29 +94,35 @@ main { width: min(100% - 28px, 920px); margin: 26px auto 48px; }
 .game[data-face="5"] { --game-accent: #f6bb98; }
 .game[data-face="6"] { --game-accent: #b0ef93; }
 .game-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 9px; }
-.game-header h3 { color: var(--game-accent); margin: 0; font: 900 clamp(1.08rem, 4vw, 1.44rem) / 1.2 ui-monospace, monospace; }
-.game-score { margin: 0; border: 1px solid #8074a1; border-radius: 4px; padding: 4px 7px; background: #19172c; font: 800 .8rem ui-monospace, monospace; }
+.game-header h3 { color: #30234a; margin: 0; font: 900 clamp(1.08rem, 4vw, 1.44rem) / 1.2 ui-monospace, monospace; }
+.game-score { margin: 0; border: 1px solid #8074a1; border-radius: 4px; padding: 4px 7px; background: #19172c; color: var(--paper); font: 800 .8rem ui-monospace, monospace; }
 .game-score:empty { display: none; }
-.game-help { margin: 9px 0; font-size: .88rem; color: #eee2fc; }
-.game-bezel { position: relative; isolation: isolate; border: 3px solid #151427; border-radius: 10px; overflow: hidden; background: #1b1730; box-shadow: 0 0 0 2px #6d5d91, 0 5px #181528; }
-.game-bezel::after { position: absolute; content: ""; inset: 0; background: repeating-linear-gradient(0deg, #1713291c 0 1px, transparent 1px 4px); box-shadow: inset 0 0 22px #100a2680; pointer-events: none; }
+.game-help { margin: 8px 0; font-size: .86rem; color: #433456; }
+.game-bezel { padding: 4px; position: relative; isolation: isolate; border: 3px solid #151427; border-radius: 10px; overflow: hidden; background: #1b1730; box-shadow: 0 0 0 2px #6d5d91, 0 5px #181528; }
+.lcd-picture { position: relative; overflow: hidden; border-radius: 4px; }
+.lcd-picture::after { position: absolute; content: ""; inset: 0; background: repeating-linear-gradient(0deg, #1713291c 0 1px, transparent 1px 4px); box-shadow: inset 0 0 22px #100a2680; pointer-events: none; }
 .pixel-display { display: block; width: 100%; aspect-ratio: 192 / 74; background: #211a32; image-rendering: pixelated; }
 .game-overlay { position: absolute; z-index: 1; inset: 0; display: grid; place-content: center; justify-items: center; gap: 5px; padding: 8px; text-align: center; background: linear-gradient(90deg, #1a122238, #1a1222bd 38% 62%, #1a122238); }
 .game-overlay[hidden] { display: none; }
 .game-overlay strong { color: var(--game-accent); font: 1000 clamp(1.24rem, 5vw, 2.5rem) / 1 ui-monospace, monospace; text-shadow: 2px 3px #21142d; }
 .game-overlay span { color: white; font-weight: 800; font-size: clamp(.73rem, 2.6vw, .95rem); }
-.game-bay { max-width: 640px; margin-inline: auto; }
-.game-screen { display: grid; place-items: center; gap: 6px; min-height: 41px; padding: 6px; margin: 10px 0 8px; color: #fff7df; text-align: center; }
+.game-bay { max-width: 920px; margin-inline: auto; }
+.game-screen { display: grid; place-items: center; gap: 6px; min-height: 29px; padding: 4px 7px; margin: 0; background: #201936; color: #fff7df; text-align: center; }
 .game-screen[hidden] { display: none; }
 .game-screen > div:empty { display: none; }
-.game-controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
+.game-controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; padding: 5px 4px 7px; }
+.game-controls:empty { display: none; }
+.controller-trim { display: flex; justify-content: space-between; align-items: center; margin: 10px 2px 3px; }
+.power-light { width: 8px; height: 8px; border-radius: 50%; background: #6aebad; border: 1px solid #26544a; box-shadow: 0 0 4px #68dbad; }
+.speaker { width: 36px; height: 9px; background: repeating-linear-gradient(90deg, #6b5989 0 3px, transparent 3px 7px); border-radius: 3px; }
+
 .game-controls .btn { color: #201e34; background: var(--game-accent); min-height: 48px; min-width: 70px; padding-inline: 13px; border-radius: 23px; border: 2px solid #1a142d; box-shadow: inset 0 2px #ffffff70, 0 4px #151128; }
 .game-controls .btn:nth-child(even) { background: #e0cef9; }
 .game-controls .btn:hover:enabled { background: var(--paper); }
 .game-controls .btn:active:enabled { transform: translateY(3px); box-shadow: inset 0 2px #ffffff70, 0 1px #151128; }
 .game-score[data-finished="true"] { color: var(--mint); }
 .game-prompt { margin: 0; font-weight: 800; font-size: .87rem; }
-.arcade-idle { padding-bottom: 14px; }
+.arcade-idle { padding-bottom: 10px; }
 .arcade-idle .game-overlay { align-content: end; justify-items: start; text-align: left; padding: clamp(12px, 3vw, 23px); background: linear-gradient(0deg, #181128dc, #18112800 78%); }
 .arcade-idle .game-overlay strong { color: #ffdf80; letter-spacing: .045em; }
 .game-symbol { font-size: 1.65rem; line-height: 1; letter-spacing: .13em; }
@@ -144,7 +165,7 @@ dialog textarea { min-height: 170px; width: 100%; }
   .screen h1 { font-size: clamp(2.6rem, 12vw, 3.8rem); }
   .card { min-height: 91px; }
   .card-slot { padding: 10px; }
-  .game { margin-inline: 9px; }
+  .game { margin-inline: 6px; }
 }
 </style>
 </head>
@@ -179,7 +200,7 @@ dialog textarea { min-height: 170px; width: 100%; }
       <ol>
         <li><strong>抽牌。</strong>直接點「抽一張卡」，抽出今天的改道選項。</li>
         <li><strong>決定要不要改道。</strong>每局只抽 1 張，用完就結束這局的改道機會。想用時點「使用卡片」，照卡片提示確認。</li>
-        <li><strong>記錄行程。</strong>展開行程，把任務標記完成。每項任務第一次完成可得 1 次擲骰，骰出的點數決定要玩哪款小遊戲。</li>
+        <li><strong>記錄行程。</strong>展開行程，把任務標記完成。每項任務第一次完成可得 1 次擲骰，骰出的點數決定要玩哪款小遊戲。每輪六款各出現一次。</li>
       </ol>
       <dl class="deck-list" id="deck-list"></dl>
     </div>
@@ -187,14 +208,22 @@ dialog textarea { min-height: 170px; width: 100%; }
 
   <section class="panel arcade" aria-labelledby="arcade-title">
     <header class="panel-head">
-      <h2 id="arcade-title">🎮 任務遊戲機</h2><span class="counter" id="credits">可骰 0 次</span>
+      <h2 id="arcade-title">🎮 任務遊戲機</h2>
+      <div class="arcade-actions">
+        <span class="counter" id="credits">可骰 0 次</span>
+        <button class="btn" id="expand-arcade" type="button" aria-haspopup="dialog">放大畫面</button>
+      </div>
     </header>
-    <div class="roll-station">
-      <span class="dice" id="die" aria-hidden="true">🎲</span>
-      <button class="btn yellow" id="roll" disabled>擲骰子</button>
-      <p class="turn" id="turn" role="status">完成一項任務，就能骰一次。</p>
+    <div id="arcade-home">
+      <div class="arcade-home" id="arcade-body">
+        <div class="roll-station">
+          <span class="dice" id="die" aria-hidden="true">🎲</span>
+          <button class="btn yellow" id="roll" disabled>擲骰子</button>
+          <p class="turn" id="turn" role="status">完成一項任務，就能骰一次。</p>
+        </div>
+        <div id="game-slot"></div>
+      </div>
     </div>
-    <div id="game-slot"></div>
   </section>
 
   <details class="panel schedule">
@@ -212,6 +241,12 @@ dialog textarea { min-height: 170px; width: 100%; }
   </details>
 </main>
 
+<dialog class="arcade-dialog arcade" id="arcade-dialog" aria-label="掌機大畫面">
+  <div class="arcade-dialog-head">
+    <button class="btn yellow" id="close-arcade" type="button">返回行程</button>
+  </div>
+  <div id="arcade-expanded"></div>
+</dialog>
 <dialog id="dialog" aria-labelledby="dialog-title">
   <form id="dialog-form">
     <h2 id="dialog-title"></h2>
@@ -245,9 +280,10 @@ dialog textarea { min-height: 170px; width: 100%; }
     { emoji: '😈', name: '免責卡', text: '跳過一項非固定任務。完成率照實記錄。', kind: 'skip' },
   ];
   const statuses = [['todo', '待執行'], ['done', '✓ 完成'], ['skip', '未完成']];
+  const gameFaces = [1, 2, 3, 4, 5, 6];
   const newGame = () => ({
     tasks: schedule.map(([emoji, name, time, fixed]) => ({ emoji, name, time, fixed: Boolean(fixed), status: 'todo' })),
-    card: null, used: false, arcade: { spent: 0, round: null },
+    card: null, used: false, arcade: { spent: 0, round: null, remaining: [...gameFaces] },
   });
   let state = newGame();
   try {
@@ -255,6 +291,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     if (Array.isArray(saved?.tasks)) {
       state = saved;
       state.arcade ??= { spent: 0, round: null };
+      state.arcade.remaining ??= gameFaces.filter(face => face !== state.arcade.round?.face);
       for (const task of state.tasks) task.rewardEarned ??= task.status === 'done';
     }
   } catch {}
@@ -382,7 +419,8 @@ dialog textarea { min-height: 170px; width: 100%; }
     if (round && !round.finished) {
       get('turn').textContent = '骰出 ' + round.face + ' 點。玩完這局就能再骰。';
     } else if (credits > 0) {
-      get('turn').textContent = '擲骰解鎖一局復古小遊戲。';
+      const remaining = state.arcade.remaining.length;
+      get('turn').textContent = remaining ? '這輪還有 ' + remaining + ' 款遊戲可以骰到。' : '六款都骰過了，下一骰開啟新一輪。';
     } else {
       get('turn').textContent = '展開下方行程，完成一項任務就能骰一次。';
     }
@@ -572,6 +610,7 @@ dialog textarea { min-height: 170px; width: 100%; }
   function cartridgeDisplay(face) {
     const bezel = element('div', null, 'game-bezel');
     const display = element('canvas', null, 'pixel-display');
+    const picture = element('div', null, 'lcd-picture');
     const overlay = element('div', null, 'game-overlay');
     const headline = element('strong');
     const caption = element('span');
@@ -581,7 +620,8 @@ dialog textarea { min-height: 170px; width: 100%; }
     const paint = pixelStage(face, display);
     paint({});
     overlay.append(headline, caption);
-    bezel.append(display, overlay);
+    picture.append(display, overlay);
+    bezel.append(picture);
     return {
       bezel, paint,
       message(title, subtitle) {
@@ -599,7 +639,10 @@ dialog textarea { min-height: 170px; width: 100%; }
     const game = element('section', null, round ? 'game' : 'game arcade-idle');
     const stage = cartridgeDisplay(round?.face ?? 0);
     const bay = element('div', null, 'game-bay');
-    bay.append(stage.bezel);
+    const trim = element('div', null, 'controller-trim');
+    trim.setAttribute('aria-hidden', 'true');
+    trim.append(element('span', null, 'power-light'), element('span', null, 'speaker'));
+    bay.append(stage.bezel, trim);
     game.append(bay);
     slot.replaceChildren(game);
     if (!round) {
@@ -619,7 +662,8 @@ dialog textarea { min-height: 170px; width: 100%; }
     prompt.setAttribute('role', 'status');
     header.append(title, score);
     screen.append(view, prompt);
-    bay.replaceChildren(header, stage.bezel, element('p', help, 'game-help'), screen, controls);
+    stage.bezel.append(screen);
+    bay.replaceChildren(header, stage.bezel, trim, element('p', help, 'game-help'), controls);
     const buttons = entries => controls.replaceChildren(...entries.map(([label, action]) => {
       const button = element('button', label, 'btn yellow');
       button.type = 'button';
@@ -865,13 +909,30 @@ dialog textarea { min-height: 170px; width: 100%; }
 
   get('roll').onclick = () => {
     if (get('roll').disabled) return;
-    const face = pick(games.length) + 1;
+    const arcade = state.arcade;
+    const startingCycle = arcade.remaining.length === 0;
+    if (startingCycle) arcade.remaining = [...gameFaces];
+    const options = startingCycle ? arcade.remaining.filter(face => face !== arcade.round?.face) : arcade.remaining;
+    const face = options[pick(options.length)];
+    arcade.remaining = arcade.remaining.filter(option => option !== face);
     state.arcade.spent++;
     state.arcade.round = { face, finished: false };
     render();
     openGame();
   };
 
+  const arcadeDialog = get('arcade-dialog');
+  get('expand-arcade').onclick = () => {
+    if (arcadeDialog.open) return;
+    const priorFocus = document.activeElement;
+    get('arcade-expanded').append(get('arcade-body'));
+    arcadeDialog.showModal();
+    arcadeDialog.addEventListener('close', () => {
+      get('arcade-home').append(get('arcade-body'));
+      priorFocus?.focus();
+    }, { once: true });
+  };
+  get('close-arcade').onclick = () => arcadeDialog.close();
   get('draw').onclick = drawCard;
   get('cancel').onclick = () => get('dialog').close();
   get('use').onclick = () => {
