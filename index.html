@@ -74,6 +74,11 @@ main { width: min(100% - 28px, 920px); margin: 26px auto 48px; }
 .game-score { margin: 0; font-size: .85rem; font-weight: 800; }
 .game-help { margin: 7px 0; font-size: .9rem; }
 .game-screen { display: grid; place-content: center; justify-items: center; gap: 8px; min-height: 94px; padding: 10px; margin: 10px 0; background: #211a32; border: 2px solid #b99cdc; border-radius: 6px; text-align: center; }
+.pixel-display { display: block; width: 100%; max-width: 576px; aspect-ratio: 192 / 74; margin: 9px auto 0; border: 3px solid #c4a4e2; border-radius: 5px; background: #211a32; image-rendering: pixelated; }
+.game-screen { max-width: 576px; margin-inline: auto; min-height: 63px; }
+.game-controls .btn { min-height: 46px; box-shadow: 0 4px #1e1633; }
+.game-controls .btn:active:enabled { transform: translateY(3px); box-shadow: 0 1px #1e1633; }
+.game-score[data-finished="true"] { color: var(--mint); }
 .game-prompt { margin: 0; font-weight: 800; }
 .game-controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
 .game-controls .btn { color: var(--ink); min-width: 60px; }
@@ -360,6 +365,156 @@ dialog textarea { min-height: 170px; width: 100%; }
     }
   }
 
+  const pixelSprites = {
+    player: ['..333...', '.33333..', '.32525..', '..222...', '..444...', '.14441..', '..444...', '..4.4...', '.11.11..'],
+    robot: ['...3....', '..333...', '.34443..', '.32323..', '..333...', '.14441..', '..444...', '.11.11..'],
+    fish: ['.......', '...33..', '1.3333.', '133232.', '1.3333.', '...33..'],
+    rocket: ['...2...', '..232..', '..343..', '..333..', '.13331.', '.1.3.1.', '...4...', '..444..'],
+    invader: ['..1...1..', '...1.1...', '..11111..', '.1121211.', '111111111', '1.11111.1', '1.1...1.1', '...1.1...'],
+    rock: ['..333..', '.33133.', '3334333', '3343343', '.33333.', '..333..'],
+    tree: ['...3...', '..333..', '.33333.', '3333333', '..333..', '.33333.', '3333333', '...1...', '...1...'],
+    ring: ['..333..', '.33233.', '33...33', '33...33', '33...33', '.33333.', '..333..'],
+  };
+  const spriteColors = {
+    player: ['#282036', '#ffdcbb', '#5cdb9c', '#a89bff', '#37233f'],
+    robot: ['#463059', '#ffeb9b', '#fa83ae', '#bc57a0'],
+    fish: ['#ffd16b', '#47284c', '#ffa56a'],
+    rocket: ['#f78aaa', '#faedc6', '#bb9fff', '#ffb352'],
+    invader: ['#85e5ac', '#251a38'],
+    rock: ['#462d57', '#695276', '#c3909c', '#f6b590'],
+    tree: ['#734659', '#94396b', '#397b71'],
+    ring: ['#9d5571', '#fff8bc', '#ffd565'],
+  };
+
+  function pixelStage(face, canvas) {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return () => {};
+    const width = canvas.width;
+    const height = canvas.height;
+    let currentEffect;
+    let scene = {};
+    function box(x, y, w, h, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(Math.round(x), Math.round(y), w, h);
+    }
+    function sprite(name, x, y, scale = 2, flip = false) {
+      const grid = pixelSprites[name];
+      grid.forEach((row, dy) => [...row].forEach((pixel, dx) => {
+        if (pixel !== '.') box(x + (flip ? row.length - 1 - dx : dx) * scale, y + dy * scale, scale, scale, spriteColors[name][Number(pixel) - 1]);
+      }));
+    }
+    function cloud(x, y, color) {
+      box(x, y + 3, 20, 5, color);
+      box(x + 4, y, 12, 8, color);
+      box(x + 8, y - 2, 7, 4, color);
+    }
+    function landscape(night = false) {
+      box(0, 0, width, height, night ? '#443357' : '#e595a9');
+      box(0, 17, width, 25, night ? '#5d4868' : '#f0b399');
+      box(137, 7, 18, 18, night ? '#ffd887' : '#fff1ae');
+      cloud(20, 12, '#fff1c1');
+      cloud(96, 22, '#f9d0b8');
+      box(0, 41, width, 12, '#836794');
+      for (let i = 0; i < 5; i++) {
+        box(i * 43, 35 + i % 2 * 6, 29, 13, '#836794');
+        box(i * 43 + 6, 29 + i % 2 * 6, 17, 9, '#836794');
+      }
+      box(0, 51, width, height - 51, '#4c8b77');
+      box(0, 60, width, height - 60, '#386360');
+      for (let i = 0; i < 28; i++) box((i * 17) % width, 53 + i * 7 % 18, 4, 1, '#82b58a');
+    }
+    function space() {
+      box(0, 0, width, height, '#211736');
+      for (let i = 0; i < 36; i++) box((i * 53 + 7) % width, (i * 19 + 3) % height, i % 5 === 0 ? 2 : 1, 1, i % 4 === 0 ? '#ffd889' : '#89749f');
+      for (let lane = 1; lane < 3; lane++) {
+        for (let y = 26; y < height; y += 9) box(32 + lane * 42, y, 1, 4, '#513c70');
+      }
+    }
+    function burst(x, y, color) {
+      for (const [dx, dy] of [[0,-6], [0,6], [-7,0], [7,0], [-5,-4], [5,4], [5,-4], [-5,4]]) {
+        box(x + dx, y + dy, 3, 2, color);
+      }
+    }
+    function paint(effect) {
+      const { cue, safe = 1, aim = 1, input, hit, color, sequence = [] } = scene;
+      ctx.imageSmoothingEnabled = false;
+      if (face === 1) {
+        landscape();
+        sprite('tree', 5, 31, 2);
+        sprite('tree', 170, 29, 2);
+        sprite('player', 27, 37, 2);
+        for (const [x, y] of [[82, 48], [115, 41], [147, 46]]) {
+          box(x + 2, y + 2, 4, 13, '#664653');
+          box(x, y, 8, 4, '#f7d773');
+          box(x + 5, y + 2, 3, 11, '#bd7666');
+        }
+        sprite('ring', effect ? 112 : 49, effect ? 34 : 45);
+        if (effect) burst(119, 43, hit ? '#fff384' : '#ff9aba');
+      } else if (face === 2) {
+        landscape(true);
+        box(42, 48, width - 42, 26, '#367e91');
+        box(48, 61, width - 48, 13, '#3e668b');
+        for (let i = 0; i < 14; i++) box(52 + (i * 27) % 136, 50 + i * 7 % 22, 9, 1, '#7db7b3');
+        box(0, 53, 63, 4, '#ae796b');
+        sprite('player', 24, 36, 2);
+        if (cue) {
+          box(40, 41, 55, 1, '#f2d9b8');
+          box(94, 41, 1, 14, '#f2d9b8');
+          box(93, 54, 4, 3, '#ff9bb1');
+        }
+        if (cue === 'bite' || effect && hit) {
+          sprite('fish', 94, effect ? 35 : 52, 2);
+          burst(99, 53, '#c6f6e6');
+        }
+      } else if (face === 3) {
+        box(0, 0, width, height, '#53365f');
+        box(0, 12, width, 32, '#704064');
+        for (let i = 0; i < 13; i++) box(i * 16 + 4, 17 + i % 4 * 5, 9, 32, '#5c3d65');
+        box(0, 58, width, 16, '#a96977');
+        box(0, 58, width, 3, '#ffc17b');
+        for (let i = 0; i < 12; i++) box(i * 17, 67, 10, 1, '#d38487');
+        sprite('player', 50 + (effect && input === 'attack' ? 13 : 0), 29, 3);
+        sprite('robot', 116 - (cue === 'attack' ? 8 : 0), 32, 3, true);
+        if (cue) burst(126, 24, cue === 'attack' ? '#ffa1b0' : '#ffe681');
+        if (effect) burst(89, 43, hit ? '#ffec8e' : '#eab0f3');
+      } else if (face === 4) {
+        box(0, 0, width, height, '#2f284a');
+        const lights = ['#f688b5', '#ffdb74', '#86e0ad', '#bb9bff'];
+        const chips = sequence.length ? sequence : [0, 1, 2, 3];
+        chips.forEach((chip, index) => {
+          const x = 96 - chips.length * 17 + index * 34;
+          box(x, 20, 27, 31, '#1d1730');
+          box(x + 3, 23, 21, 22, sequence.length || color === chip ? lights[chip] : '#645078');
+          box(x + 6, 25, 4, 2, '#ffffff66');
+          box(x + 8, 48, 12, 2, '#bb9bff');
+        });
+        if (effect) burst(98, 61, hit ? '#9aebbd' : '#ff9ab8');
+      } else {
+        space();
+        if (face === 5) {
+          if (cue) for (let lane = 0; lane < 3; lane++) {
+            if (lane !== safe) sprite('rock', 45 + lane * 42, 20 + lane % 2 * 5, 3);
+          }
+          sprite('rocket', 48 + (effect ? input : 1) * 42, 49);
+          if (effect) burst(55 + input * 42, 48, hit ? '#91eac6' : '#ffad9f');
+        } else {
+          sprite('invader', 47 + aim * 42, 13, 2);
+          sprite('rocket', 48 + (effect ? input : 1) * 42, 49);
+          if (effect) {
+            box(55 + input * 42, 30, 2, 17, '#f9e38b');
+            burst(55 + input * 42, 28, hit ? '#95ecba' : '#ffad9f');
+          }
+        }
+      }
+    }
+    return next => {
+      scene = next;
+      clearTimeout(currentEffect);
+      paint(next.effect);
+      if (next.effect) currentEffect = setTimeout(() => paint(false), 220);
+    };
+  }
+
   function openGame() {
     stopGame();
     const round = state.arcade.round;
@@ -369,6 +524,12 @@ dialog textarea { min-height: 170px; width: 100%; }
     const header = element('header', null, 'game-header');
     const title = element('h3', name);
     const score = element('p', null, 'game-score');
+    const display = element('canvas', null, 'pixel-display');
+    display.width = 192;
+    display.height = 74;
+    display.setAttribute('aria-hidden', 'true');
+    const paint = pixelStage(round.face, display);
+    paint({});
     const screen = element('div', null, 'game-screen');
     const view = element('div');
     const prompt = element('p', null, 'game-prompt');
@@ -376,7 +537,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     prompt.setAttribute('role', 'status');
     header.append(title, score);
     screen.append(view, prompt);
-    game.append(header, element('p', help, 'game-help'), screen, controls);
+    game.append(header, element('p', help, 'game-help'), display, screen, controls);
     get('game-slot').replaceChildren(game);
     const buttons = entries => controls.replaceChildren(...entries.map(([label, action]) => {
       const button = element('button', label, 'btn yellow');
@@ -389,6 +550,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     if (round.finished) {
       status('本局結束');
       score.textContent = round.score;
+      score.dataset.finished = 'true';
       return;
     }
 
@@ -397,6 +559,7 @@ dialog textarea { min-height: 170px; width: 100%; }
       round.finished = true;
       round.score = result;
       score.textContent = result;
+      score.dataset.finished = 'true';
       status('本局結束');
       buttons([]);
       render();
@@ -408,11 +571,11 @@ dialog textarea { min-height: 170px; width: 100%; }
       stopGame();
       gameTimer = setTimeout(callback, duration);
     };
-    buttons([['開始遊戲', () => play({ view, buttons, status, updateScore, finish, later })]]);
+    buttons([['開始遊戲', () => play({ view, buttons, status, updateScore, finish, later, paint })]]);
     status('準備好了就按開始。');
   }
 
-  function ringGame({ view, buttons, status, updateScore, finish, later }) {
+  function ringGame({ view, buttons, status, updateScore, finish, later, paint }) {
     const meter = element('div', null, 'meter');
     const target = element('span', null, 'meter-target');
     const marker = element('span', null, 'meter-marker');
@@ -441,6 +604,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     status('看準綠色區域！');
     buttons([['丟圈', () => {
       const hit = Math.abs(position - center) <= targetWidth / 2;
+      paint({ effect: true, hit });
       hits += Number(hit);
       attempts++;
       if (attempts === 3) return finish('套中 ' + hits + '／3');
@@ -452,7 +616,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     }]]);
   }
 
-  function fishingGame({ view, buttons, status, updateScore, finish, later }) {
+  function fishingGame({ view, buttons, status, updateScore, finish, later, paint }) {
     let hits = 0;
     let attempts = 0;
     function ready(message = '準備拋竿！') {
@@ -470,12 +634,15 @@ dialog textarea { min-height: 170px; width: 100%; }
     function cast() {
       let biting = false;
       status('等魚靠近…');
+      paint({ cue: 'cast' });
       buttons([['收線', () => {
+        paint({ cue: biting ? 'bite' : 'cast', effect: true, hit: biting });
         hits += Number(biting);
         resolve(biting ? '釣到了！' : '太早收線了。');
       }]]);
       later(() => {
         biting = true;
+        paint({ cue: 'bite' });
         view.replaceChildren(element('span', '🐟', 'game-symbol'));
         status('咬鉤了，現在收線！');
         later(() => resolve('魚跑掉了。'), 1150);
@@ -484,27 +651,30 @@ dialog textarea { min-height: 170px; width: 100%; }
     ready();
   }
 
-  function fightingGame({ view, buttons, status, updateScore, finish }) {
+  function fightingGame({ buttons, status, updateScore, finish, paint }) {
     let hits = 0;
     let attempts = 0;
     const cues = Array.from({ length: 5 }, (_, index) => (index + pick(2)) % 2);
-    function next(message = '') {
+    function next(message = '', feedback = {}) {
       const attacking = cues[attempts] === 1;
-      view.replaceChildren(element('span', attacking ? '🤖 💥' : '🤖 ⚡', 'game-symbol'));
+      paint({ cue: attacking ? 'attack' : 'open', ...feedback });
       status([message, attacking ? '對手出拳了！' : '對手露出破綻！'].filter(Boolean).join(' '));
       updateScore(hits, attempts, 5);
-      buttons([['出拳', () => answer(!attacking)], ['防禦', () => answer(attacking)]]);
+      buttons([['出拳', () => answer(!attacking, 'attack')], ['防禦', () => answer(attacking, 'block')]]);
     }
-    function answer(hit) {
+    function answer(hit, input) {
       hits += Number(hit);
       attempts++;
-      if (attempts === 5) return finish('招式成功 ' + hits + '／5');
-      next(hit ? '漂亮！' : '這招沒奏效。');
+      if (attempts === 5) {
+        paint({ effect: true, hit, input });
+        return finish('招式成功 ' + hits + '／5');
+      }
+      next(hit ? '漂亮！' : '這招沒奏效。', { effect: true, hit, input });
     }
     next();
   }
 
-  function memoryGame({ view, buttons, status, updateScore, finish, later }) {
+  function memoryGame({ view, buttons, status, updateScore, finish, later, paint }) {
     const colors = ['粉', '黃', '綠', '紫'];
     const icons = ['🩷', '💛', '💚', '💜'];
     let hits = 0;
@@ -517,22 +687,26 @@ dialog textarea { min-height: 170px; width: 100%; }
     }
     function show() {
       const sequence = Array.from({ length: attempts + 2 }, () => pick(colors.length));
+      paint({ sequence });
       let index = 0;
       view.replaceChildren(element('span', sequence.map(color => icons[color]).join(' '), 'game-symbol'));
       status(sequence.map(color => colors[color]).join('、'));
       buttons([]);
       later(() => {
         view.replaceChildren();
+        paint({});
         status('照順序按下顏色。');
         buttons(colors.map((color, value) => [icons[value] + ' ' + color, () => {
           if (sequence[index] !== value) return resolve(false);
           index++;
+          paint({ color: value });
           if (index === sequence.length) return resolve(true);
           status('已輸入 ' + index + '／' + sequence.length);
         }]));
       }, 1600 + attempts * 450);
     }
     function resolve(hit) {
+      paint({ effect: true, hit });
       hits += Number(hit);
       attempts++;
       if (attempts === 3) return finish('記對 ' + hits + '／3 組');
@@ -551,12 +725,13 @@ dialog textarea { min-height: 170px; width: 100%; }
     view.replaceChildren(lanes);
   }
 
-  function dodgeGame({ view, buttons, status, updateScore, finish }) {
+  function dodgeGame({ view, buttons, status, updateScore, finish, paint }) {
     const directions = ['左', '中', '右'];
     let hits = 0;
     let attempts = 0;
-    function next(message = '') {
+    function next(message = '', feedback = {}) {
       const safe = pick(3);
+      paint({ cue: 'obstacles', safe, ...feedback });
       const labels = directions.map((direction, index) => direction + (index === safe ? '空' : '有隕石'));
       showLanes(view, directions.map((_, index) => index === safe ? '·' : '☄️'), labels);
       status(message + '選一條空航道。');
@@ -565,19 +740,24 @@ dialog textarea { min-height: 170px; width: 100%; }
         const hit = index === safe;
         hits += Number(hit);
         attempts++;
-        if (attempts === 5) return finish('安全通過 ' + hits + '／5');
-        next(hit ? '安全通過！' : '撞到隕石了。');
+        const feedback = { effect: true, hit, input: index };
+        if (attempts === 5) {
+          paint({ cue: 'obstacles', safe, ...feedback });
+          return finish('安全通過 ' + hits + '／5');
+        }
+        next(hit ? '安全通過！' : '撞到隕石了。', feedback);
       }]));
     }
     next();
   }
 
-  function shooterGame({ view, buttons, status, updateScore, finish, later }) {
+  function shooterGame({ view, buttons, status, updateScore, finish, later, paint }) {
     const directions = ['左', '中', '右'];
     let target = pick(3);
     let attempts = 0;
     let hits = 0;
     function move() {
+      paint({ aim: target });
       const labels = directions.map((direction, index) => direction + (index === target ? '有外星人' : '空'));
       showLanes(view, directions.map((_, index) => index === target ? '👾' : '·'), labels);
       later(() => { target = (target + 1) % directions.length; move(); }, 725);
@@ -587,6 +767,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     move();
     buttons(directions.map((direction, index) => [direction + '側開火', () => {
       const hit = target === index;
+      paint({ aim: target, effect: true, hit, input: index });
       attempts++;
       hits += Number(hit);
       if (attempts === 3) return finish('命中 ' + hits + '／3');
