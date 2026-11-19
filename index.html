@@ -132,6 +132,21 @@ main { width: min(100% - 28px, 1080px); margin: 26px auto 48px; }
 .meter-target, .meter-marker { position: absolute; top: 0; bottom: 0; }
 .meter-target { background: #80d4a2; }
 .meter-marker { width: 5px; background: #221433; transform: translateX(-50%); }
+.fishing-game { width: min(100%, 620px); display: grid; gap: 8px; padding: 5px 8px 9px; text-align: left; }
+.fish-readout { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 800 .72rem ui-monospace, monospace; color: #fff4d7; }
+.fish-readout span:last-child { color: #b9e8d1; }
+.fish-gauge { position: relative; height: 13px; overflow: hidden; border: 2px solid #fff1d5; border-radius: 4px; background: #312749; box-shadow: inset 0 2px 4px #110d1d; }
+.fish-gauge-fill { height: 100%; width: 0; transition: width .08s linear; background: linear-gradient(90deg, #81d9a4 0 60%, #ffdb78 78%, #ff7895 100%); }
+.fish-gauge.tension::before { content: ""; position: absolute; top: 0; bottom: 0; left: 25%; width: 43%; border-left: 1px solid #fff8dc; border-right: 1px solid #fff8dc; background: #86e1a655; z-index: 1; }
+.fish-gauge.tension .fish-gauge-fill { background: linear-gradient(90deg, #69d99a, #ffdf79 74%, #ff698f); }
+.fish-gauge.progress .fish-gauge-fill { background: linear-gradient(90deg, #b6a2ff, #ff8fb6); }
+.cast-gauge { overflow: hidden; border: 2px solid #fff1d5; border-radius: 4px; background: #312749; height: 18px; position: relative; }
+.cast-gauge::before { content: ""; position: absolute; top: 0; bottom: 0; left: 62%; width: 20%; background: #83d9a766; border-inline: 1px solid #9df2bf; }
+.cast-gauge span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #f4bd70, #fff19a); }
+.fish-tip { min-height: 1.3em; color: #fff4d7; text-align: center; font-size: .76rem; font-weight: 750; }
+.game-controls .btn.hold-control { min-width: 138px; touch-action: none; user-select: none; -webkit-user-select: none; }
+.game-controls .btn.utility-control { min-width: 46px; min-height: 40px; padding: 5px 9px; border-radius: 12px; font-size: .82rem; }
+.game-header-tools { display: flex; align-items: center; gap: 8px; }
 .schedule summary { cursor: pointer; font-weight: 850; list-style: none; }
 .schedule summary::-webkit-details-marker { display: none; }
 .schedule summary::before { content: '▸'; }
@@ -396,7 +411,7 @@ dialog textarea { min-height: 170px; width: 100%; }
 
   const games = [
     ['⭕ 套圈圈', '等指標進入綠色區域，再按「丟圈」。三次機會。', ringGame],
-    ['🎣 釣魚', '拋竿後等到魚咬鉤，再按「收線」。三次機會。', fishingGame],
+    ['🎣 溪畔釣魚', '按住蓄力拋竿；浮標下沉時揚竿。上鉤後按住收線，魚力變強時放開，安全釣起三尾。', fishingGame],
     ['🥊 像素格鬥', '對手出拳就防禦，露出破綻就出拳。打五回合。', fightingGame],
     ['🧠 閃燈記憶', '看完顏色順序，再照順序按出來。三輪，順序會愈來愈長。', memoryGame],
     ['🚀 閃躲隕石', '每回合選一條沒有隕石的航道。撐過五回合。', dodgeGame],
@@ -405,6 +420,26 @@ dialog textarea { min-height: 170px; width: 100%; }
   const faces = ['🎲', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
   const pick = length => Math.floor(Math.random() * length);
   let gameTimer;
+  let soundEnabled = true;
+  let audioContext;
+
+  function chirp(note = 660, duration = .08, wave = 'square') {
+    if (!soundEnabled) return;
+    try {
+      audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
+      if (audioContext.state === 'suspended') audioContext.resume();
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = wave;
+      oscillator.frequency.setValueAtTime(note, audioContext.currentTime);
+      gain.gain.setValueAtTime(.035, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + duration);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + duration);
+    } catch {}
+  }
 
   function stopGame() {
     clearTimeout(gameTimer);
@@ -528,20 +563,69 @@ dialog textarea { min-height: 170px; width: 100%; }
         sprite('ring', effect ? 49 + phase * 65 : 49, effect ? 45 - Math.sin(phase * Math.PI) * 26 - phase * 7 : 45);
         if (phase > .66) burst(119, 43, hit ? '#fff384' : '#ff9aba', phase);
       } else if (face === 2) {
-        landscape(true);
-        box(42, 48, width - 42, 26, '#367e91');
-        box(48, 61, width - 48, 13, '#3e668b');
-        for (let i = 0; i < 14; i++) box(52 + (i * 27) % 136, 50 + i * 7 % 22, 9, 1, '#7db7b3');
-        box(0, 53, 63, 4, '#ae796b');
-        sprite('player', 24, 36, 2);
-        if (cue) {
-          box(40, 41, 55, 1, '#f2d9b8');
-          box(94, 41, 1, 14, '#f2d9b8');
-          box(93, 54, 4, 3, '#ff9bb1');
+        const clock = performance.now() / 1000;
+        const bobber = scene.bobberX ?? 111;
+        const bobY = scene.bobberY ?? 39 + Math.sin(clock * 2.1) * 1.5;
+        const fishX = scene.fishX ?? 125 + Math.sin(clock * 1.4) * 12;
+        const fishY = scene.fishY ?? 59 + Math.sin(clock * 3.2) * 2;
+        box(0, 0, width, height, '#524a72');
+        box(0, 10, width, 17, '#8d7895');
+        box(136, 8, 18, 18, '#ffd78a');
+        box(141, 4, 10, 4, '#ffe8aa');
+        box(0, 26, width, 8, '#47566f');
+        for (let i = 0; i < 7; i++) {
+          const x = i * 34 - 8;
+          box(x + 4, 21, 13, 12, '#33495c');
+          box(x, 26, 21, 8, '#33495c');
         }
-        if (cue === 'bite' || effect && hit) {
-          sprite('fish', 94 - phase * 25, effect ? 52 - Math.sin(phase * Math.PI / 1.5) * 24 : 52, 2);
-          burst(99, 53, '#c6f6e6', effect ? phase : .45);
+        box(0, 34, width, 18, '#568b91');
+        box(0, 37, width, 18, '#407b83');
+        box(0, 42, width, 18, '#326b76');
+        box(0, 49, width, 25, '#285460');
+        for (let i = 0; i < 20; i++) {
+          const x = (i * 31 + Math.floor(clock * (i % 2 ? 10 : -6)) + 400) % 205 - 6;
+          const y = 36 + (i * 7) % 26;
+          box(x, y, i % 4 === 0 ? 13 : 7, 1, i % 3 === 0 ? '#a2c6a3' : '#6da6a0');
+        }
+        box(0, 56, 50, 18, '#c19174');
+        box(0, 54, 48, 3, '#e4bd90');
+        for (let i = 0; i < 5; i++) {
+          box(i * 11 + 3, 51 - i % 2 * 4, 2, 8, '#477a64');
+          box(i * 11, 50 - i % 2 * 4, 7, 3, '#8fc180');
+        }
+        sprite('player', 22, 36, 2);
+        box(37, 44, 15, 1, '#e2b77e');
+        box(49, 39, 14, 1, '#e2b77e');
+        box(60, 34, 12, 1, '#f2d9b8');
+        box(70, 34, 1, Math.max(3, Math.round(bobY - 34)), '#f2d9b8');
+        box(69, Math.round(bobY + 3), 3, 3, '#f6c977');
+        box(Math.round(bobber), Math.round(bobY), 3, 5, scene.stage === 'bite' ? '#ff7895' : '#ffe17d');
+        box(Math.round(bobber) - 1, Math.round(bobY) + 2, 5, 2, '#fff4d7');
+        box(Math.round(bobber) + 1, Math.round(bobY) + 6, 1, 2, '#e3d4b5');
+        const fishVisible = scene.stage === 'bite' || scene.stage === 'reel' || (scene.stage === 'wait' && scene.tease);
+        if (fishVisible) {
+          const jumping = scene.stage === 'reel' && scene.surge;
+          sprite('fish', fishX, jumping ? 45 + Math.sin(clock * 14) * 2 : fishY, 2, Math.sin(clock * 1.1) > 0);
+          box(fishX + 5, (jumping ? 49 : fishY + 3), 2, 1, '#fff4d7');
+          if (scene.stage === 'bite' || jumping) {
+            for (let i = 0; i < 3; i++) box(bobber + (i * 2 - 2), bobY - 4 - i * 3, 1, 2, '#bfe9d4');
+          }
+        }
+        if (scene.stage === 'cast') {
+          for (let i = 0; i < 4; i++) box(56 + i * 8, 34 + i * 2, 2, 1, '#fff1b5');
+        }
+        if (scene.stage === 'reel') {
+          box(154, 9, 27, 11, '#282440');
+          box(158, 13, 4, 4, '#81d9a4');
+          box(166, 12, 10, 1, '#f5e8c2');
+          box(166, 15, 8, 1, '#b7a4da');
+          if (scene.surge) burst(fishX + 6, 49, '#fff1b5', .55);
+          if (effect) burst(fishX + 5, 51, hit ? '#c6f6e6' : '#ff9aba', phase);
+        }
+        if (scene.stage === 'result') {
+          box(151, 8, 34, 18, '#29233e');
+          sprite('fish', 158, 13, 2);
+          burst(151, 12, '#ffe795', .45);
         }
       } else if (face === 3) {
         box(0, 0, width, height, '#53365f');
@@ -660,14 +744,54 @@ dialog textarea { min-height: 170px; width: 100%; }
     const prompt = element('p', null, 'game-prompt');
     const controls = element('div', null, 'game-controls');
     prompt.setAttribute('role', 'status');
-    header.append(title, score);
+    const tools = element('div', null, 'game-header-tools');
+    const sound = element('button', soundEnabled ? '♫ 開' : '♫ 關', 'btn utility-control');
+    sound.type = 'button';
+    sound.setAttribute('aria-label', '切換像素音效');
+    sound.onclick = () => {
+      soundEnabled = !soundEnabled;
+      sound.textContent = soundEnabled ? '♫ 開' : '♫ 關';
+      sound.setAttribute('aria-pressed', String(soundEnabled));
+      if (soundEnabled) chirp(740);
+    };
+    tools.append(score, sound);
+    header.append(title, tools);
     screen.append(view, prompt);
     stage.bezel.append(screen);
     bay.replaceChildren(header, stage.bezel, trim, element('p', help, 'game-help'), controls);
-    const buttons = entries => controls.replaceChildren(...entries.map(([label, action]) => {
+    const buttons = entries => controls.replaceChildren(...entries.map(([label, action, options = {}]) => {
       const button = element('button', label, 'btn yellow');
       button.type = 'button';
-      button.onclick = action;
+      if (options.hold) {
+        button.classList.add('hold-control');
+        let held = false;
+        let downAt = 0;
+        const down = event => {
+          if (held || button.disabled) return;
+          held = true;
+          downAt = performance.now();
+          event.preventDefault();
+          options.hold.start?.();
+          if (event.pointerId !== undefined) button.setPointerCapture?.(event.pointerId);
+        };
+        const up = event => {
+          if (!held) return;
+          held = false;
+          event.preventDefault();
+          options.hold.end?.(performance.now() - downAt);
+        };
+        button.addEventListener('pointerdown', down);
+        button.addEventListener('pointerup', up);
+        button.addEventListener('pointercancel', up);
+        button.addEventListener('keydown', event => {
+          if (event.key === ' ' || event.key === 'Enter') down(event);
+        });
+        button.addEventListener('keyup', event => {
+          if (event.key === ' ' || event.key === 'Enter') up(event);
+        });
+      } else {
+        button.onclick = action;
+      }
       return button;
     }));
     const status = message => { prompt.textContent = message; };
@@ -680,13 +804,13 @@ dialog textarea { min-height: 170px; width: 100%; }
       return;
     }
 
-    const finish = result => {
+    const finish = (result, presentation = {}) => {
       stopGame();
       round.finished = true;
       round.score = result;
       score.textContent = result;
       score.dataset.finished = 'true';
-      stage.message('本局結束', result);
+      stage.message(presentation.title ?? '本局結束', presentation.subtitle ?? result);
       screen.hidden = true;
       buttons([]);
       render();
@@ -748,38 +872,212 @@ dialog textarea { min-height: 170px; width: 100%; }
   }
 
   function fishingGame({ view, buttons, status, updateScore, finish, later, paint }) {
-    let hits = 0;
+    const fishKinds = [
+      { name: '溪谷銀鱗', difficulty: .92, color: '#e7e8df' },
+      { name: '蜜桃鯉魚', difficulty: 1.08, color: '#f6aa9a' },
+      { name: '月光小鱒', difficulty: 1, color: '#b7c2ef' },
+    ];
+    const hud = element('div', null, 'fishing-game');
+    const readout = element('div', null, 'fish-readout');
+    const fishLabel = element('span', '🍃 溪畔  ·  風平浪靜');
+    const roundLabel = element('span');
+    const gaugeLabel = element('div', null, 'fish-readout');
+    const gaugeTitle = element('span');
+    const gaugeValue = element('span');
+    const gauge = element('div', null, 'fish-gauge');
+    const fill = element('span', null, 'fish-gauge-fill');
+    const tip = element('div', null, 'fish-tip');
+    readout.append(fishLabel, roundLabel);
+    gaugeLabel.append(gaugeTitle, gaugeValue);
+    gauge.append(fill);
+    hud.append(readout, gaugeLabel, gauge, tip);
+    view.replaceChildren(hud);
+
+    let catches = 0;
     let attempts = 0;
-    function ready(message = '準備拋竿！') {
-      status(message);
-      view.replaceChildren(element('span', '🌊', 'game-symbol'));
-      updateScore(hits, attempts, 3);
-      buttons([['拋竿', cast]]);
+    let currentFish = fishKinds[0];
+    let castPower = .72;
+    let perfectCast = false;
+    let chargeStarted = 0;
+    let phaseStarted = 0;
+    let tension = .12;
+    let progress = 0;
+    let held = false;
+    let dangerTime = 0;
+    let nextSurge = 0;
+    let surge = false;
+    let lastTick = 0;
+    let bobberX = 112;
+    let gameEnded = false;
+
+    const buzz = (pattern = 14) => { try { navigator.vibrate?.(pattern); } catch {} };
+    function updateReadout(left, right) {
+      fishLabel.textContent = left;
+      roundLabel.textContent = right;
     }
-    function resolve(result) {
+    function updateGauge(title, value, amount, type = '') {
+      gaugeTitle.textContent = title;
+      gaugeValue.textContent = value;
+      gauge.className = 'fish-gauge' + (type ? ' ' + type : '');
+      fill.style.width = Math.round(Math.max(0, Math.min(1, amount)) * 100) + '%';
+    }
+    function setTip(message) { tip.textContent = message; }
+    function nextAttempt(message) {
       stopGame();
       attempts++;
-      if (attempts === 3) return finish('釣到 ' + hits + '／3 條魚');
-      ready(result);
+      held = false;
+      surge = false;
+      if (attempts >= 3) {
+        const title = catches === 3 ? '溪神釣手！' : catches >= 2 ? '滿載而歸！' : catches === 1 ? '成功上鉤！' : '魚兒溜走啦';
+        const result = '釣獲 ' + catches + '／3 尾';
+        paint({ stage: 'result' });
+        chirp(catches ? 880 : 250, .22, catches ? 'triangle' : 'square');
+        return finish(result, { title, subtitle: result });
+      }
+      status(message + ' 換個角度再試試。');
+      showCast();
+    }
+    function showCast(message = '按住「蓄力拋竿」，在綠色區放開。') {
+      stopGame();
+      updateReadout('🍃 溪畔  ·  風平浪靜', '第 ' + (attempts + 1) + ' 投／3');
+      updateGauge('拋竿力道', '—', 0);
+      setTip('綠色是漂亮落點；多一點、少一點也能釣魚。');
+      status(message);
+      paint({ stage: 'cast', bobberX: 110, fishX: 122 });
+        buttons([
+        ['按住蓄力拋竿', null, { hold: {
+          start() {
+            chargeStarted = performance.now();
+            let buzzedAtSweetSpot = false;
+            chirp(390, .05);
+            function charge() {
+              if (!chargeStarted) return;
+              const amount = Math.min(1, (performance.now() - chargeStarted) / 1250);
+              updateGauge('拋竿力道', Math.round(amount * 100) + '%', amount);
+              if (amount >= .62 && !buzzedAtSweetSpot) { buzz(10); buzzedAtSweetSpot = true; }
+              later(charge, 35);
+            }
+            charge();
+          },
+          end(duration) {
+            const amount = Math.max(.08, Math.min(1, duration / 1250));
+            chargeStarted = 0;
+            castPower = amount;
+            perfectCast = amount >= .62 && amount <= .82;
+            cast();
+          },
+        } }],
+        ['輕拋', () => { castPower = .42; perfectCast = false; cast(); }],
+      ]);
     }
     function cast() {
-      let biting = false;
-      status('等魚靠近…');
-      paint({ cue: 'cast' });
-      buttons([['收線', () => {
-        paint({ cue: biting ? 'bite' : 'cast', effect: true, hit: biting });
-        hits += Number(biting);
-        resolve(biting ? '釣到了！' : '太早收線了。');
-      }]]);
+      stopGame();
+      currentFish = fishKinds[pick(fishKinds.length)];
+      bobberX = Math.round(74 + castPower * 64);
+      const wind = pick(3) - 1;
+      const adjusted = Math.max(.08, Math.min(1, castPower + wind * .035));
+      perfectCast = perfectCast && adjusted >= .60 && adjusted <= .85;
+      updateReadout('🎣 ' + currentFish.name, '第 ' + (attempts + 1) + ' 投／3');
+      updateGauge('落點', perfectCast ? '漂亮！' : '落水', adjusted);
+      setTip(perfectCast ? '正中魚群附近，這竿很漂亮！' : '魚餌落水了，盯緊浮標。');
+      status('魚餌落水，先觀察浮標的動靜。');
+      paint({ stage: 'wait', bobberX, fishX: bobberX + 8, fishY: 60 });
       later(() => {
-        biting = true;
-        paint({ cue: 'bite' });
-        view.replaceChildren(element('span', '🐟', 'game-symbol'));
-        status('咬鉤了，現在收線！');
-        later(() => resolve('魚跑掉了。'), 1150);
-      }, 650 + pick(901));
+        paint({ stage: 'wait', tease: true, bobberX, bobberY: 38, fishX: bobberX + 2, fishY: 57 });
+        setTip('浮標輕晃了⋯⋯牠還在試探魚餌。');
+        status('浮標輕輕動了一下，先等等。');
+        later(() => {
+          phaseStarted = performance.now();
+          paint({ stage: 'bite', bobberX, bobberY: 51, fishX: bobberX + 4, fishY: 48 });
+          chirp(930, .09);
+          buzz([22, 30, 22]);
+          setTip('咬鉤了！看到浮標下沉，立刻揚竿！');
+          status('浮標沉了！現在按「揚竿勾魚」。');
+          buttons([['揚竿勾魚', hook]]);
+          later(() => nextAttempt('魚把餌吃了，妳差一點點！'), 1450);
+        }, 760 + pick(360));
+      }, 1400 + pick(1200) - (perfectCast ? 350 : 0));
     }
-    ready();
+    function hook() {
+      if (performance.now() - phaseStarted > 1450) return;
+      stopGame();
+      progress = perfectCast ? .16 : .08;
+      tension = .26;
+      dangerTime = 0;
+      lastTick = performance.now();
+      phaseStarted = lastTick;
+      nextSurge = lastTick + 1450 + pick(950);
+      surge = false;
+      held = false;
+      chirp(1120, .14, 'triangle');
+      buzz(28);
+      updateReadout('✨ 上鉤！' + currentFish.name, '魚力 ' + Math.round(currentFish.difficulty * 100) + '%');
+      status('勾住了！按住收線拉近，魚掙扎變紅時放開。');
+      setTip('綠色線槽是安全區，黃色代表緊繃，紅色可能斷線。');
+      gauge.className = 'fish-gauge tension';
+      buttons([['按住收線', null, { hold: {
+        start() { held = true; chirp(470, .045); },
+        end() { held = false; },
+      } }]]);
+      function reelTick() {
+        const now = performance.now();
+        const dt = Math.min(.12, (now - lastTick) / 1000);
+        lastTick = now;
+        const elapsed = (now - phaseStarted) / 1000;
+        const struggle = .5 + .5 * Math.sin(elapsed * 3.1 + currentFish.difficulty);
+        if (now >= nextSurge) {
+          surge = true;
+          nextSurge = now + 1500 + pick(1200);
+          setTip('魚突然往外衝！放開收線，等牠力氣變小。');
+          chirp(210, .11);
+          buzz(12);
+        } else if (surge && now + dt * 1000 > nextSurge - 800) {
+          surge = false;
+          setTip('魚力變小了，回到綠色張力區繼續收線。');
+        }
+        if (held) {
+          tension += dt * (.25 + struggle * .20) * currentFish.difficulty;
+          if (!surge && tension >= .24 && tension <= .72) progress += dt * (.20 + castPower * .04) / currentFish.difficulty;
+          else if (tension > .72) progress += dt * .018;
+          if (surge) tension += dt * .20;
+        } else {
+          tension -= dt * .34;
+          progress = Math.max(perfectCast ? .16 : .08, progress - dt * .018);
+        }
+        tension = Math.max(0, Math.min(1, tension));
+        if (tension > .84) dangerTime += dt;
+        else dangerTime = Math.max(0, dangerTime - dt * 1.6);
+        updateGauge('魚線張力', Math.round(tension * 100) + '%', tension, 'tension');
+        roundLabel.textContent = '距離 ' + Math.max(0, 100 - Math.round(progress * 100)) + '%';
+        fill.style.background = tension > .75 ? 'linear-gradient(90deg,#ffca72,#ff6384)' : '';
+        paint({ stage: 'reel', bobberX, bobberY: 41 + Math.sin(now / 250) * 1.5, fishX: bobberX - 24 + Math.sin(now / 460) * 12, fishY: 52, surge, tension, progress });
+        if (dangerTime >= .75) {
+          chirp(190, .26);
+          return nextAttempt('魚線繃得太緊，啪一聲斷掉了。');
+        }
+        if (progress >= 1) {
+          catches++;
+          chirp(990, .08, 'triangle');
+          setTimeout(() => chirp(1320, .18, 'triangle'), 85);
+          buzz([18, 40, 28]);
+          attempts++;
+          if (attempts >= 3) {
+            paint({ stage: 'result' });
+            const title = catches === 3 ? '溪神釣手！' : catches === 2 ? '滿載而歸！' : '成功上鉤！';
+            const result = '釣獲 ' + catches + '／3 尾';
+            return finish(result, { title, subtitle: result });
+          }
+          return showCast('漂亮收線，' + currentFish.name + '到手！再來一竿。');
+        }
+        if (tension > .72) setTip(surge ? '魚正在猛衝！先放開，讓張力降下來。' : '張力偏高，放開一小會兒再收。');
+        else if (!held) setTip('線鬆下來了，張力回到綠色區再按住收線。');
+        else setTip('收得漂亮，魚正在靠近！留意張力槽。');
+        later(reelTick, 70);
+      }
+      reelTick();
+    }
+    status('溪風吹過水面。準備好就開始這一竿。');
+    showCast();
   }
 
   function fightingGame({ buttons, status, updateScore, finish, paint }) {
