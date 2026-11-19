@@ -50,6 +50,15 @@ main { width: min(100% - 28px, 920px); margin: 26px auto 48px; }
 .pink { background: var(--pink); }
 .yellow { background: var(--yellow); }
 .mint { background: var(--mint); }
+.rules { margin-top: 16px; border: var(--edge); border-radius: 11px; background: var(--paper); box-shadow: 3px 3px var(--ink); }
+.rules summary { cursor: pointer; padding: 10px 13px; font-weight: 850; }
+.rules-body { padding: 0 13px 13px; line-height: 1.5; }
+.rules-body ol { margin: 0 0 12px; padding-left: 1.5em; }
+.rules-body li + li { margin-top: 4px; }
+.deck-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 7px; margin: 0; }
+.deck-entry { border: 2px solid var(--ink); border-radius: 7px; background: var(--lavender); padding: 6px 8px; }
+.deck-entry dt { font-weight: 850; }
+.deck-entry dd { margin: 2px 0 0; font-size: .85rem; color: var(--muted); }
 .lower { display: grid; grid-template-columns: minmax(0, 1.16fr) minmax(280px, 1fr); gap: 16px; align-items: start; margin-top: 22px; }
 .panel { min-width: 0; border: var(--edge); border-radius: 14px; background: var(--paper); box-shadow: 4px 4px var(--ink); overflow: hidden; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 11px 13px; background: var(--lavender); border-bottom: var(--edge); }
@@ -105,7 +114,7 @@ dialog textarea { min-height: 170px; width: 100%; }
       <div>
         <div class="screen-label">CIAO UNIVERSITY</div>
         <h1 id="rebellion-title">REBELLION<br><span>TIME</span></h1>
-        <p>今天想怎麼改道？先抽一張卡，再決定要不要用。</p>
+        <p>從 4 種改道卡隨機抽 1 張。抽到後，妳可以留著，想改行程時再用。</p>
       </div>
       <div class="card-slot">
         <div class="card" id="card" data-drawn="false" aria-live="polite">
@@ -117,10 +126,22 @@ dialog textarea { min-height: 170px; width: 100%; }
           <button class="btn pink" id="draw">抽一張卡</button>
           <button class="btn yellow" id="use" disabled>使用卡片</button>
         </div>
-        <p class="status" id="card-status">本局可抽 1 張</p>
+        <p class="status" id="card-status">本局可隨機抽 1 張</p>
       </div>
     </div>
   </section>
+
+  <details class="rules">
+    <summary>怎麼玩？看規則和 4 種卡片</summary>
+    <div class="rules-body">
+      <ol>
+        <li><strong>抽牌。</strong>直接點「抽一張卡」就能抽。也可以擲骰，走到「命運」或「機會」格時自動抽。</li>
+        <li><strong>決定要不要改道。</strong>每局只抽 1 張，用完就結束這局的改道機會。想用時點「使用卡片」，照卡片提示確認。</li>
+        <li><strong>記錄行程。</strong>做完一項任務，就在「今日任務」標記完成。棋盤上的任務格也能點開更新狀態。</li>
+      </ol>
+      <dl class="deck-list" id="deck-list"></dl>
+    </div>
+  </details>
 
   <div class="lower">
     <section class="panel" aria-labelledby="board-title">
@@ -250,6 +271,12 @@ dialog textarea { min-height: 170px; width: 100%; }
     toast('抽到「' + state.card.name + '」');
   }
 
+  for (const card of cards) {
+    const entry = element('div', null, 'deck-entry');
+    entry.append(element('dt', card.emoji + ' ' + card.name), element('dd', card.text));
+    get('deck-list').append(entry);
+  }
+
   function renderBoard() {
     const board = get('board');
     board.querySelectorAll('.tile').forEach(tile => tile.remove());
@@ -310,7 +337,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     get('card-icon').textContent = card?.emoji ?? '✦';
     get('card-name').textContent = card?.name ?? '今日改道卡';
     get('card-text').textContent = card?.text ?? '交換時段、延後、自由時間或跳過任務。';
-    get('card-status').textContent = state.used ? '本局已使用' : card ? '已抽牌，可使用' : '本局可抽 1 張';
+    get('card-status').textContent = state.used ? '本局已使用' : card ? '本局已抽 1 張，隨時可以使用' : '本局可隨機抽 1 張';
     get('turn').textContent = state.rolls ? '第 ' + state.rolls + ' 次擲骰 · 第 ' + (state.position + 1) + ' 格' : '準備出發';
     renderBoard();
     renderTasks();
