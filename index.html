@@ -133,6 +133,10 @@ main { width: min(100% - 28px, 1080px); margin: 26px auto 48px; }
 .meter-target { background: #80d4a2; }
 .meter-marker { width: 5px; background: #221433; transform: translateX(-50%); }
 .fishing-game { width: min(100%, 620px); display: grid; gap: 8px; padding: 5px 8px 9px; text-align: left; }
+.fish-steps { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 4px; }
+.fish-step { padding: 4px 3px; border: 1px solid #a99ac1; border-radius: 5px; color: #ddd3e8; text-align: center; font-size: .65rem; font-weight: 850; }
+.fish-step[data-active="true"] { background: #b9edcf; border-color: #fff1a7; color: #25213d; }
+.fish-step[data-done="true"] { background: #6eb28d; color: #fff8e7; }
 .fish-readout { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 800 .72rem ui-monospace, monospace; color: #fff4d7; }
 .fish-readout span:last-child { color: #b9e8d1; }
 .fish-gauge { position: relative; height: 13px; overflow: hidden; border: 2px solid #fff1d5; border-radius: 4px; background: #312749; box-shadow: inset 0 2px 4px #110d1d; }
@@ -447,11 +451,11 @@ dialog textarea { min-height: 170px; width: 100%; }
 
   const games = [
     ['⭕ 套圈圈', '抓準移動指標，瞄準不同的亮燈杯位投出三次，越準得分越高。', ringGame],
-    ['🎣 溪畔釣魚', '三步驟：按住蓄力，在綠色區放開；浮標沉下時揚竿；按住收線，張力快到黃色就放開。', fishingGame],
+    ['🎣 溪畔釣魚', '跟著畫面上的三步提示玩：拋竿、等浮標沉下時揚竿、按住收線把魚拉上來。收線不會斷線，慢慢玩就好。', fishingGame],
     ['🥊 像素格鬥', '看清對手的出拳提示，先防禦，再趁破綻反擊。共三回合。', fightingGame],
     ['🧠 閃燈記憶', '顏色會一個一個亮起，記住順序再照順序按，三輪會愈來愈長。', memoryGame],
     ['🚀 閃躲隕石', '看隕石逐漸靠近，在撞上前移到空航道，共三波。', dodgeGame],
-    ['👾 外星射手', '自己切換瞄準位置，等外星人移動時開火，共三發。', shooterGame],
+    ['👾 外星射手', '每回合先找外星人在哪一條航道，瞄準後按開火；看見光束和命中反應再打下一回合，共三回合。', shooterGame],
   ];
   const faces = ['🎲', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
   const pick = length => Math.floor(Math.random() * length);
@@ -463,12 +467,12 @@ dialog textarea { min-height: 170px; width: 100%; }
   let musicStep = 0;
   let musicFace = 0;
   const musicThemes = [
-    [659, 784, 988, 784, 659, 784, 880, 0, 784, 659, 587, 659, 784, 0, 659, 0],
-    [392, 523, 587, 523, 392, 523, 659, 0, 523, 587, 659, 587, 523, 0, 392, 0],
-    [440, 587, 659, 784, 659, 587, 523, 0, 440, 523, 659, 880, 784, 659, 523, 0],
-    [523, 659, 784, 659, 587, 740, 880, 740, 659, 784, 988, 784, 523, 659, 784, 0],
-    [392, 523, 659, 523, 440, 587, 740, 587, 392, 523, 659, 784, 659, 523, 440, 0],
-    [587, 659, 784, 988, 784, 659, 880, 0, 587, 784, 988, 1175, 988, 784, 659, 0],
+    { notes:[784,0,784,0,784,0,659,784,988,0,880,0,784,0,659,0,698,0,698,0,698,0,587,698,880,0,784,0,698,0,587,0], bass:[196,196,147,165], tempo:150 },
+    { notes:[523,0,659,784,0,659,523,0,440,0,523,659,0,523,440,0,392,0,523,659,784,0,659,523,440,0,392,0,330,392,440,0], bass:[131,165,110,147], tempo:190 },
+    { notes:[220,0,440,0,659,0,523,0,220,0,440,0,698,659,523,0,196,0,392,0,587,0,784,0,698,0,523,0,440,392,220,0], bass:[110,110,98,131], tempo:145 },
+    { notes:[523,659,784,659,587,740,880,740,659,784,988,784,523,659,784,0,440,587,740,587,523,659,784,659,587,740,880,740,659,587,523,0], bass:[131,165,147,110], tempo:170 },
+    { notes:[392,0,523,659,0,784,659,0,440,0,587,740,0,880,740,0,392,0,523,659,0,880,784,0,659,0,523,0,440,523,392,0], bass:[98,131,110,147], tempo:155 },
+    { notes:[587,0,784,0,988,0,784,659,0,880,0,1175,988,784,659,0,523,0,659,0,784,988,0,1175,988,0,784,659,587,659,523,0], bass:[147,196,165,131], tempo:135 },
   ];
 
   function playTone(note, duration, wave, volume) {
@@ -505,12 +509,13 @@ dialog textarea { min-height: 170px; width: 100%; }
     musicStep = 0;
     function tick() {
       if (!musicEnabled || !musicFace) return;
-      const melody = musicThemes[musicFace - 1] ?? musicThemes[0];
-      const note = melody[musicStep % melody.length];
-      playTone(note, .13, 'triangle', .012);
-      if (musicStep % 4 === 0) playTone([196, 147, 174, 130][Math.floor(musicStep / 4) % 4], .22, 'triangle', .008);
+      const theme = musicThemes[musicFace - 1] ?? musicThemes[0];
+      const note = theme.notes[musicStep % theme.notes.length];
+      playTone(note, .105, 'square', .009);
+      if (musicStep % 4 === 0) playTone(theme.bass[Math.floor(musicStep / 4) % theme.bass.length], .24, 'triangle', .012);
+      if (musicStep % 8 === 4) playTone(note ? note / 2 : 0, .12, 'triangle', .005);
       musicStep++;
-      musicTimer = setTimeout(tick, 155);
+      musicTimer = setTimeout(tick, theme.tempo);
     }
     tick();
   }
@@ -779,7 +784,7 @@ dialog textarea { min-height: 170px; width: 100%; }
       const start = performance.now();
       function animate() {
         if (!canvas.isConnected) return;
-        const phase = (performance.now() - start) / 290;
+        const phase = (performance.now() - start) / 520;
         paint(phase < 1 ? Math.max(.01, phase) : 0);
         if (phase < 1) frame = setTimeout(animate, 32);
       }
@@ -961,14 +966,14 @@ dialog textarea { min-height: 170px; width: 100%; }
     let center = [26, 50, 74][lane];
     let lastLane = lane;
     let started = performance.now();
-    const widths = [24, 19, 14];
+    const widths = [32, 27, 22];
     let targetWidth = widths[0];
     const setTarget = () => {
       target.style.left = (center - targetWidth / 2) + '%';
       target.style.width = targetWidth + '%';
     };
     function animate() {
-      const speed = 1700 - attempts * 220;
+      const speed = 2700 - attempts * 180;
       const phase = ((performance.now() - started) % speed) / (speed / 2);
       position = (phase < 1 ? phase : 2 - phase) * 100;
       marker.style.left = position + '%';
@@ -1004,7 +1009,7 @@ dialog textarea { min-height: 170px; width: 100%; }
           const result = '套中 ' + hits + '／3';
           return finish(result, { title, subtitle: result });
         }
-        later(() => nextRound(bullseye ? '正中紅心！下一杯距離更遠，指標也更快了。' : hit ? '套中了！下一個杯位更小心。' : '差一點，下一次看準再丟。'), 440);
+        later(() => nextRound('回合 ' + (attempts + 1) + '／3 · ' + (bullseye ? '正中紅心！下一杯位置變了。' : hit ? '套中了！下一杯位置變了。' : '差一點也沒關係，再來一次。')), 850);
       }]]);
     }
     nextRound();
@@ -1017,6 +1022,13 @@ dialog textarea { min-height: 170px; width: 100%; }
       { name: '月光小鱒', difficulty: 1, color: '#b7c2ef' },
     ];
     const hud = element('div', null, 'fishing-game');
+    const steps = element('div', null, 'fish-steps');
+    const stepNodes = ['① 拋竿', '② 浮標下沉就揚竿', '③ 收線'];
+    const stepLabels = stepNodes.map((label, index) => {
+      const node = element('span', label, 'fish-step');
+      steps.append(node);
+      return node;
+    });
     const readout = element('div', null, 'fish-readout');
     const fishLabel = element('span', '🍃 溪畔  ·  風平浪靜');
     const roundLabel = element('span');
@@ -1029,7 +1041,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     readout.append(fishLabel, roundLabel);
     gaugeLabel.append(gaugeTitle, gaugeValue);
     gauge.append(fill);
-    hud.append(readout, gaugeLabel, gauge, tip);
+    hud.append(steps, readout, gaugeLabel, gauge, tip);
     view.replaceChildren(hud);
 
     let catches = 0;
@@ -1042,6 +1054,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     let tension = .12;
     let progress = 0;
     let held = false;
+    let assistReel = false;
     let dangerTime = 0;
     let nextSurge = 0;
     let surge = false;
@@ -1062,6 +1075,12 @@ dialog textarea { min-height: 170px; width: 100%; }
       if (type !== 'tension') fill.style.background = '';
     }
     function setTip(message) { tip.textContent = message; }
+    function setStep(active) {
+      stepLabels.forEach((node, index) => {
+        node.dataset.active = String(index + 1 === active);
+        node.dataset.done = String(index + 1 < active);
+      });
+    }
     function nextAttempt(message) {
       stopGame();
       attempts++;
@@ -1078,13 +1097,15 @@ dialog textarea { min-height: 170px; width: 100%; }
     }
     function showCast(message = '按住「蓄力拋竿」，在綠色區放開。') {
       stopGame();
+      setStep(1);
       updateReadout('🍃 溪畔  ·  風平浪靜', '第 ' + (attempts + 1) + ' 投／3');
       updateGauge('拋竿力道', '—', 0, 'cast');
-      setTip('第一步：按住蓄力，放在綠色區就好。');
+      setTip('按「輕鬆拋竿」會自動拋出去；也可以按住蓄力挑戰。');
       status(message);
       paint({ stage: 'cast', bobberX: 110, fishX: 122 });
         buttons([
-        ['按住蓄力拋竿', null, { hold: {
+        ['輕鬆拋竿', () => { castPower = .68; perfectCast = true; cast(); }],
+        ['按住蓄力挑戰', null, { hold: {
           start() {
             chargeStarted = performance.now();
             let buzzedAtSweetSpot = false;
@@ -1106,7 +1127,6 @@ dialog textarea { min-height: 170px; width: 100%; }
             cast();
           },
         } }],
-        ['輕拋', () => { castPower = .42; perfectCast = false; cast(); }],
       ]);
     }
     function cast() {
@@ -1118,9 +1138,10 @@ dialog textarea { min-height: 170px; width: 100%; }
       const adjusted = Math.max(.08, Math.min(1, castPower + wind * .035));
       perfectCast = perfectCast && adjusted >= .48 && adjusted <= .92;
       updateReadout('🍃 ' + windName + ' · ' + currentFish.name, '第 ' + (attempts + 1) + ' 投／3');
+      setStep(2);
       updateGauge('落點', perfectCast ? '漂亮！' : '落水', adjusted, 'cast');
       setTip(perfectCast ? '落在魚群附近，這竿很漂亮！' : '沒有完美也沒關係，魚餌已經下水。');
-      status('第二步：等浮標完全沉下；輕輕晃動只是魚在試探。');
+      status('第 2 步：等浮標往下沉；輕輕晃動先不用管。');
       paint({ stage: 'wait', bobberX, fishX: bobberX + 8, fishY: 60 });
       later(() => {
           paint({ stage: 'wait', tease: true, bobberX, bobberY: 67, fishX: bobberX + 2, fishY: 88 });
@@ -1132,16 +1153,16 @@ dialog textarea { min-height: 170px; width: 100%; }
           chirp(930, .09);
           buzz([22, 30, 22]);
           setTip('浮標完全沉下就是咬鉤，現在按下面的按鈕！');
-          status('咬鉤了！按「揚竿勾魚」。妳有兩秒左右的時間。');
+          status('浮標沉了！按「揚竿勾魚」，有 3 秒多可以慢慢找。');
           buttons([['揚竿勾魚', hook]]);
-          later(() => nextAttempt('魚把餌吃了，這次慢了一點。'), 2200);
+          later(() => nextAttempt('魚把餌吃了，這次慢了一點。'), 3600);
         }, 760 + pick(360));
       }, 1400 + pick(1200) - (perfectCast ? 350 : 0));
     }
     function hook() {
-      if (performance.now() - phaseStarted > 2200) return;
+      if (performance.now() - phaseStarted > 3600) return;
       stopGame();
-      progress = perfectCast ? .2 : .12;
+      progress = perfectCast ? .3 : .2;
       tension = .2;
       dangerTime = 0;
       lastTick = performance.now();
@@ -1152,13 +1173,15 @@ dialog textarea { min-height: 170px; width: 100%; }
       chirp(1120, .14, 'triangle');
       buzz(28);
       updateReadout('✨ 上鉤！' + currentFish.name, '魚力 ' + Math.round(currentFish.difficulty * 100) + '%');
-      status('第三步：按住收線。張力快到黃色就放開，回到綠色再收。');
-      setTip('放開會讓張力下降；等魚靠近，距離到 0 就釣到了。');
+      setStep(3);
+      assistReel = false;
+      status('第 3 步：按住收線；或按「自動收線」讓小幫手完成。');
+      setTip('自動收線會自己控制魚線，妳看魚靠近上岸就好。');
       gauge.className = 'fish-gauge tension';
       buttons([['按住收線', null, { hold: {
         start() { held = true; chirp(470, .045); },
         end() { held = false; },
-      } }]]);
+      } }], ['自動收線', () => { assistReel = true; status('小幫手正在慢慢收線，等魚上岸就好！'); setTip('自動收線中……不用再按，魚快到了。'); }]]);
       function reelTick() {
         const now = performance.now();
         const dt = Math.min(.12, (now - lastTick) / 1000);
@@ -1175,23 +1198,24 @@ dialog textarea { min-height: 170px; width: 100%; }
           surge = false;
           setTip('魚力變小了，回到綠色張力區繼續收線。');
         }
+        if (assistReel) held = !surge && tension < .66;
         if (held) {
-          tension += dt * (.20 + struggle * .16) * currentFish.difficulty;
-          if (!surge && tension >= .18 && tension <= .78) progress += dt * (.25 + castPower * .035) / currentFish.difficulty;
-          else if (tension > .78) progress += dt * .02;
-          if (surge) tension += dt * .13;
+          tension += dt * (.13 + struggle * .09) * currentFish.difficulty;
+          if (!surge && tension >= .18 && tension <= .84) progress += dt * (.36 + castPower * .04) / currentFish.difficulty;
+          else if (tension > .84) progress += dt * .08;
+          if (surge) tension += dt * .08;
         } else {
-          tension -= dt * .42;
-          progress = Math.max(perfectCast ? .2 : .12, progress - dt * .012);
+          tension -= dt * .5;
+          progress = Math.max(perfectCast ? .3 : .2, progress - dt * .004);
         }
         tension = Math.max(0, Math.min(1, tension));
-        if (tension > .94) dangerTime += dt;
+        if (tension > .98) dangerTime += dt;
         else dangerTime = Math.max(0, dangerTime - dt * 1.6);
         updateGauge('魚線張力', Math.round(tension * 100) + '%', tension, 'tension');
         roundLabel.textContent = '距離 ' + Math.max(0, 100 - Math.round(progress * 100)) + '%';
         fill.style.background = tension > .75 ? 'linear-gradient(90deg,#ffca72,#ff6384)' : '';
         paint({ stage: 'reel', bobberX, bobberY: 69 + Math.sin(now / 250) * 1.5, fishX: bobberX - 24 + Math.sin(now / 460) * 12, fishY: 86, surge, tension, progress });
-        if (dangerTime >= 1.35) {
+        if (dangerTime >= 2.5) {
           chirp(190, .26);
           return nextAttempt('魚線繃得太緊，啪一聲斷掉了。');
         }
@@ -1245,7 +1269,7 @@ dialog textarea { min-height: 170px; width: 100%; }
       buttons([]);
       later(() => {
         phase = 'strike';
-        const window = Math.max(530, 760 - attempts * 42);
+        const window = Math.max(1200, 1400 - attempts * 60);
         paint({ cue: 'attack' });
         status('對手出拳！快按「防禦」。');
         setWindow(window);
@@ -1269,14 +1293,14 @@ dialog textarea { min-height: 170px; width: 100%; }
       }
       status(message);
       buttons([]);
-      later(() => next(hit ? '防得漂亮，下一拳來了！' : '重新站穩，留意下一次出拳。'), 500);
+      later(() => next('回合 ' + (attempts + 1) + '／3 · ' + (hit ? '防得漂亮，對手又要出拳了！' : '重新站穩，準備下一回合。')), 950);
     }
     function miss(message) { resolve(false, message, 'attack', 'block'); }
     function parry() {
       if (phase !== 'strike') return;
       stopGame();
       phase = 'open';
-      const window = Math.max(560, 850 - attempts * 48);
+      const window = Math.max(1450, 1650 - attempts * 60);
       paint({ cue: 'open', input: 'block', effect: true, hit: true });
       sound(760, .08, 'triangle');
       try { navigator.vibrate?.(12); } catch {}
@@ -1337,8 +1361,8 @@ dialog textarea { min-height: 170px; width: 100%; }
         later(() => {
           paint({ sequence, active: -1 });
           step++;
-          later(flashNext, 170);
-        }, 430);
+          later(flashNext, 330);
+        }, 650);
       }
       flashNext();
     }
@@ -1353,7 +1377,7 @@ dialog textarea { min-height: 170px; width: 100%; }
         const result = '記對 ' + hits + '／3 組';
         return finish(result, { title, subtitle: result });
       }
-      later(() => ready(hit ? '整組背對了！' : '順序不太一樣，再記一次。'), 420);
+      later(() => ready('回合 ' + (attempts + 1) + '／3 · ' + (hit ? '整組記對了！' : '順序不一樣也沒關係，下一組更長一點。')), 850);
     }
     ready();
   }
@@ -1379,7 +1403,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     let duration = 2000;
     function next(message = '隕石來了！看清空航道，在撞上前移過去。') {
       safeLane = pick(3);
-      duration = Math.max(1650, 2050 - attempts * 170);
+      duration = Math.max(2700, 3000 - attempts * 120);
       phaseStarted = performance.now();
       paint({ cue: 'obstacles', safe: safeLane, arrival: 0, playerLane });
       showLanes(view, ['←', '↑', '→'], directions.map((direction, index) => direction + '航道' + (index === playerLane ? '，目前位置' : '')), playerLane);
@@ -1407,7 +1431,7 @@ dialog textarea { min-height: 170px; width: 100%; }
           const result = '安全通過 ' + hits + '／3';
           return finish(result, { title, subtitle: result });
         }
-        later(() => next(hit ? '漂亮閃過！下一波來得更快。' : '碰到碎石了，重新找空航道。'), 500);
+        later(() => next('回合 ' + (attempts + 1) + '／3 · ' + (hit ? '漂亮閃過！下一波來囉。' : '擦到隕石沒關係，重新找空航道。')), 900);
       }
       animateArrival();
     }
@@ -1420,7 +1444,7 @@ dialog textarea { min-height: 170px; width: 100%; }
     let aim = 1;
     let shots = 0;
     let hits = 0;
-    let lastShot = 0;
+    let busy = false;
     const total = 3;
     function drawAimStatus(message) {
       paint({ aim: target, playerAim: aim });
@@ -1432,12 +1456,29 @@ dialog textarea { min-height: 170px; width: 100%; }
       if (next === target) next = (next + 1 + pick(2)) % 3;
       target = next;
       paint({ aim: target, playerAim: aim });
-      later(move, 650 + pick(300));
+      later(move, 1350 + pick(550));
+    }
+    function setControls() {
+      buttons([
+        ...directions.map((direction, index) => ['瞄準' + direction, () => {
+          if (busy) return;
+          aim = index;
+          drawAimStatus('準星在' + direction + '側。對準外星人再按「開火」！');
+        }]),
+        ['🚀 開火', fire],
+      ]);
+    }
+    function nextRound(message = '找出外星人所在的航道，瞄準後開火。') {
+      target = pick(3);
+      busy = false;
+      drawAimStatus('第 ' + (shots + 1) + '／3 回合 · ' + message);
+      updateScore(hits, shots, total);
+      setControls();
+      later(move, 1350 + pick(350));
     }
     function fire() {
-      const now = performance.now();
-      if (now - lastShot < 220) return;
-      lastShot = now;
+      if (busy) return;
+      busy = true;
       const hit = aim === target;
       shots++;
       hits += Number(hit);
@@ -1445,23 +1486,18 @@ dialog textarea { min-height: 170px; width: 100%; }
       sound(hit ? 880 : 280, .1, hit ? 'triangle' : 'square');
       if (hit) { try { navigator.vibrate?.(12); } catch {} }
       updateScore(hits, shots, total);
-      if (shots === total) {
-        const title = hits === total ? '銀河神槍手！' : hits >= 2 ? '王牌射手！' : hits >= 1 ? '擊落成功！' : '再鎖定目標？';
-        const result = '命中 ' + hits + '／' + total;
-        return finish(result, { title, subtitle: result });
-      }
-      drawAimStatus(hit ? '命中！外星人又換位置了。' : '射偏了，調整準星再試一次。');
+      buttons([]);
+      const message = hit ? '命中！外星人被光束擊中了！' : '光束射出去了，差一格！';
+      later(() => {
+        if (shots === total) {
+          const title = hits === total ? '銀河神槍手！' : hits >= 2 ? '王牌射手！' : hits >= 1 ? '擊落成功！' : '再鎖定目標？';
+          const result = '命中 ' + hits + '／' + total;
+          return finish(result, { title, subtitle: result });
+        }
+        nextRound('第 ' + (shots + 1) + ' 回合準備！' + message);
+      }, 800);
     }
-    drawAimStatus('用左、中、右調準星，等外星人移進準星再開火。');
-    updateScore(hits, shots, total);
-    buttons([
-      ...directions.map((direction, index) => ['瞄準' + direction, () => {
-        aim = index;
-        drawAimStatus('準星移到' + direction + '側，找外星人的下一步。');
-      }]),
-      ['開火', fire],
-    ]);
-    move();
+    nextRound('每回合只能開火一次，光束會留在畫面上給妳看。');
   }
 
   get('roll').onclick = () => {
